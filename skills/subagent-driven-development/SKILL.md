@@ -123,7 +123,7 @@ instructions yourself, and do not paste role templates into prompts.
 |------|-----------|--------|-------|
 | Implementer | `superpowers:sdd-implementer` | high | full |
 | Task reviewer | `superpowers:sdd-task-reviewer` | high | read-only |
-| Scoped re-reviewer | `superpowers:sdd-re-reviewer` | medium | read-only |
+| Scoped re-reviewer | `superpowers:sdd-re-reviewer` | high | read-only |
 | Final whole-branch reviewer | `superpowers:code-reviewer` | xhigh | read-only |
 
 Each definition carries its own contract, effort tier, and tool set. Reviewers
@@ -134,6 +134,13 @@ constraints, findings — never the role's instructions.
 **Effort, not model tier.** One model runs every role; what varies is reasoning
 effort, and the agent definitions set it. Per-call effort is not settable through
 the Agent tool, so do not try to override it in a dispatch.
+
+Two tiers, on one distinction: breadth of judgment. Authors and task-scoped gates
+run `high`; the whole-branch gate runs `xhigh` because it holds the entire change
+and owns merge readiness. Nothing here runs lower. A scoped re-review looks
+narrow, but deciding whether a specific defect *still exists* after someone
+attempted to remove it is subtler than reviewing fresh code, and it is the last
+check before a task is marked clean.
 
 **Escalation.** Rounds 4-5 of the fix loop escalate by fresh context plus
 explicit framing (below), not by a bigger model. When a round genuinely needs a

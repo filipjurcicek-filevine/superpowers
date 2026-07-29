@@ -31,6 +31,30 @@ dispatches this fork does not want. Per-call effort is not settable through the
 Agent tool; when a single dispatch needs a different tier, that is what the
 `Workflow` tool is for.
 
+**Two tiers, and the predicate for a third.** Authors and task-scoped gates run
+`high`; the whole-branch gate runs `xhigh`. The distinction is breadth of
+judgment, and it is the only one with a basis — an earlier four-role, three-tier
+gradient was inherited from the model-tier scheme it replaced, where the tiers
+tracked *price*. Effort is not a price axis, so the gradient carried no meaning
+across.
+
+A lower tier qualifies only when all three hold:
+
+1. The work is mechanical rather than a judgment call.
+2. It is high-volume or latency-sensitive enough for the saving to matter.
+3. Something downstream verifies it.
+
+**A gate never qualifies** — a gate *is* the downstream check, and one that thinks
+less is one that agrees more. That disqualifies every reviewer here, including the
+scoped re-reviewer: it looks narrow, but ruling on whether a defect survived
+someone's attempt to fix it is subtler than reviewing fresh code.
+
+Note where the mechanical work actually went: `task-brief`, `review-package`, and
+`sdd-workspace` are shell scripts. Deterministic work belongs in code, where it
+beats every effort tier at every price — which is why no agent here runs below
+`high`. `medium` and `low` are for `Workflow` pipeline stages (per-item transforms
+with a verify stage after them) if such a flow is ever added.
+
 **Roles are agent definitions, not paste-in templates.** A dispatch carries
 variables (file paths, constraints, findings), never the role's instructions.
 Reviewer agents have no file-editing tools, so read-only review is structural
