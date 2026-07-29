@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# PreToolUse hook on Agent: keep subagent-driven-development dispatches on their
+# effort-pinned agent types.
+#
+# Why this exists: SDD's roles are agent definitions (agents/sdd-implementer.md,
+# sdd-task-reviewer.md, sdd-re-reviewer.md, code-reviewer.md) and each pins its
+# own `effort:` tier. The Agent tool has no effort parameter, so effort comes
+# only from the definition named by subagent_type. A dispatch that omits
+# subagent_type — or passes general-purpose — silently runs at session effort
+# with no role contract and full write tools, which is exactly the drift the
+# agent definitions were introduced to remove. Prose cannot catch it; this can.
+#
+# Scope is deliberately narrow. The gate fires only when the dispatch is
+# provably an SDD dispatch: its prompt references a path inside the SDD
+# workspace (.superpowers/sdd/), which is where briefs, reports and review
+# packages live. Every other Agent call passes untouched.
+#
+# Decision order:
+#   1. SUPERPOWERS_EFFORT_GUARD=0            -> allow (kill switch)
+#   2. tool_name != Agent                    -> allow
+#   3. prompt has no .superpowers/sdd/ path  -> allow (not an SDD dispatch)
+#   4. subagent_type is a known SDD role     -> allow
+#   5. otherwise                             -> block (exit 2) with the fix
+#
+# Fails open on every error: a broken gate must never wedge a session.
+
+set -uo pipefail
+
+ALLOW='{"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "allow"}}'
+
+if [ "${SUPERPOWERS_EFFORT_GUARD:-1}" = "0" ]; then
+    echo "$ALLOW"
+    exit 0
+fi
+
+# Any unexpected failure below allows the dispatch through.
+trap 'echo "$ALLOW"; exit 0' ERR
+
+INPUT=$(cat)
+
+# One jq pass for the fields we need. Newlines inside the prompt are flattened
+# so each field stays on one line. A parse failure trips the ERR trap.
+FIELDS=$(printf '%s' "$INPUT" | jq -r '
+    [(.tool_name // ""), (.tool_input.subagent_type // ""), (.tool_input.prompt // "")]
+    | map(tostring | gsub("\\r|\\n"; " ")) | .[]' 2>/dev/null | tr -d '\r')
+{
+    IFS= read -r TOOL_NAME
+    IFS= read -r AGENT_TYPE
+    IFS= read -r PROMPT
+} <<< "$FIELDS" || true
+
+if [ "${TOOL_NAME:-}" != "Agent" ]; then
+    echo "$ALLOW"
+    exit 0
+fi
+
+# Not an SDD dispatch unless it hands over an SDD workspace artifact.
+case "${PROMPT:-}" in
+    *".superpowers/sdd/"*) ;;
+    *)
+        echo "$ALLOW"
+        exit 0
+        ;;
+esac
+
+# Known SDD roles, with or without the plugin namespace.
+case "${AGENT_TYPE:-}" in
+    sdd-implementer | sdd-task-reviewer | sdd-re-reviewer | code-reviewer | \
+        superpowers:sdd-implementer | superpowers:sdd-task-reviewer | \
+        superpowers:sdd-re-reviewer | superpowers:code-reviewer)
+        echo "$ALLOW"
+        exit 0
+        ;;
+esac
+
+GOT="${AGENT_TYPE:-(none)}"
+
+{
+    echo "SDD DISPATCH IS NOT ON AN EFFORT-PINNED AGENT TYPE"
+    echo
+    echo "This Agent call hands over an SDD workspace artifact (.superpowers/sdd/),"
+    echo "so it is a subagent-driven-development dispatch, but subagent_type is"
+    echo "'$GOT'."
+    echo
+    echo "The Agent tool has no effort parameter: effort comes from the agent"
+    echo "definition named by subagent_type. Dispatching without one runs the role"
+    echo "at session effort, with no role contract and with full write tools — so a"
+    echo "reviewer could edit the code it is reviewing."
+    echo
+    echo "Re-issue with the subagent_type for this role:"
+    echo "  superpowers:sdd-implementer     implementing a task, or a fix round"
+    echo "  superpowers:sdd-task-reviewer   reviewing one task's diff"
+    echo "  superpowers:sdd-re-reviewer     verifying a fix round"
+    echo "  superpowers:code-reviewer       final whole-branch review"
+    echo
+    echo "If this dispatch genuinely is not one of those roles, keep the artifact"
+    echo "path out of the prompt, or disable the gate: SUPERPOWERS_EFFORT_GUARD=0"
+} >&2
+
+exit 2

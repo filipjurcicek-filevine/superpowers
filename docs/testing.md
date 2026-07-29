@@ -1,29 +1,52 @@
 # Testing Superpowers
 
-Superpowers has two distinct kinds of tests, each in its own directory:
+Two distinct kinds of tests, each in its own directory:
 
-- **`tests/`** — does the plugin's non-LLM code work? Bash + node + python integration tests for brainstorm-server JS, OpenCode plugin loading, codex-plugin sync, and analysis utilities.
-- **`evals/`** — do agents behave correctly on real LLM sessions? Python harness driving real tmux sessions of Claude Code / Codex / Gemini CLI, with an LLM actor and verifier judging skill compliance.
+- **`tests/`** — does the plugin's non-LLM code work? Bash, node, and python
+  tests over the hooks, the SDD workspace scripts, and the analysis utilities.
+- **`evals/`** — do agents behave correctly in real sessions? A harness driving
+  real tmux sessions of Claude Code, with an LLM actor and verifier judging skill
+  compliance.
 
 ## Plugin tests
 
-Live in `tests/`. Currently:
+Live in `tests/`. Every suite here runs offline and in seconds:
 
-- `tests/brainstorm-server/` — node test suite for the brainstorm server JS code.
-- `tests/opencode/` — bash tests for OpenCode plugin loading, bootstrap caching, and tool registration.
-- `tests/codex-plugin-sync/` — bash sync verification.
-- `tests/kimi/` — bash/Python checks for Kimi plugin manifest wiring.
-- `tests/claude-code/test-helpers.sh`, `analyze-token-usage.py` — utilities used by remaining bash tests.
-- `tests/claude-code/test-subagent-driven-development.sh` — agent-can-describe-SDD test (no drill counterpart; tests description-recall, not behavior).
-- `tests/claude-code/test-subagent-driven-development-integration.sh` — extended SDD integration with token analysis (drill covers the YAGNI subset; bash adds commit-count, Claude Code task-tracking, and token telemetry assertions).
-- `tests/claude-code/test-worktree-native-preference.sh` — RED-GREEN-REFACTOR validation for worktree skill (drill covers the PRESSURE phase; bash also covers RED/GREEN baselines).
-- `tests/explicit-skill-requests/` — Haiku-specific, multi-turn, and skill-name-prompted tests not covered by drill.
+- `tests/hooks/test-session-start.sh` — SessionStart injects the bootstrap in
+  Claude Code's payload shape.
+- `tests/hooks/test-pre-agent-effort-pin.sh` — the Agent gate blocks SDD
+  dispatches that name no effort-pinned agent type, and fails open otherwise.
+- `tests/hooks/test-pre-taskupdate-user-gate.sh` — the TaskUpdate gate blocks
+  closing a `userGate` task whose `verifyCommand` never ran, and fails open
+  otherwise.
+- `tests/claude-code/test-sdd-workspace.sh` — `sdd-workspace`, `task-brief`, and
+  `review-package` resolve per-plan directories and stay invisible to git.
+- `tests/systematic-debugging/test-find-polluter.sh` — `find-polluter.sh` pattern
+  matching.
+- `tests/shell-lint/test-lint-shell.sh` — the lint wrapper itself (needs
+  `shellcheck` and `shfmt` on PATH to lint for real).
 
-Run plugin tests via the relevant directory's `run-*.sh` or `npm test`.
+Slower, LLM-driven suites that are not part of a normal run:
+
+- `tests/claude-code/test-subagent-driven-development-integration.sh` — executes a
+  real plan end to end (10-30 minutes, spawns Claude Code sessions).
+- `tests/claude-code/test-subagent-driven-development.sh` — description-recall
+  test.
+- `tests/claude-code/test-worktree-native-preference.sh` — RED/GREEN baselines for
+  the worktree skill.
+- `tests/explicit-skill-requests/` — multi-turn and skill-name-prompted tests.
+
+Run a suite directly with `bash tests/<dir>/<test>.sh`.
+
+**Every new hook needs a test suite**, and it must cover the fail-open paths
+(malformed JSON, missing transcript, unparseable input) as well as the blocking
+ones. A hook that wedges a session is worse than the drift it was catching.
 
 ## Skill behavior evals
 
-Live in `evals/`. Drill is the harness; scenarios live at `evals/scenarios/*.yaml`. See `evals/README.md` for setup. Quick start:
+Live in `evals/`, cloned from
+[superpowers-evals](https://github.com/prime-radiant-inc/superpowers-evals/).
+Scenarios live at `evals/scenarios/*.yaml`. See `evals/README.md` for setup.
 
 ```bash
 cd evals
@@ -32,4 +55,7 @@ export ANTHROPIC_API_KEY=sk-...
 uv run drill run triggering-test-driven-development -b claude
 ```
 
-Drill scenarios are slow (3-30+ minutes each) and run real LLM sessions. They are not part of CI today; the natural follow-up is a tiered model (fast subset on PR, full sweep nightly + on-demand).
+Scenarios are slow (3-30+ minutes each) and run real sessions, so they are not in
+CI. They are the only thing that tells you whether a skill edit changed behavior
+in the direction you intended — see `CLAUDE.md`, "Skill Changes Are Behavior
+Changes".

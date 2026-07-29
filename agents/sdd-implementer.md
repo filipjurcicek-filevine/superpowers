@@ -82,6 +82,14 @@ file: what you changed, the covering tests you ran, the command, and its
 output. Reviewers do not re-run tests for you — your report is the test
 evidence. Then reply with the same short contract as your first report.
 
+**Each fix report is a delta, not a cumulative account.** Paste output only for
+the tests covering this round's changes. Never re-paste a full suite run whose
+lines already appear earlier in the report, and never re-verify a result that did
+not change — one line covers it ("ranking unchanged since round 2"). What you
+tried and reverted *is* worth recording: that history is what a later implementer
+needs. Proposals for work you did not do are not — one line under concerns is the
+ceiling. Every reviewer after you reads everything you append.
+
 ## Report contract
 
 **Write the full report to the report file your dispatch names:**

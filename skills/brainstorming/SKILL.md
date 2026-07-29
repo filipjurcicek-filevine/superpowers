@@ -49,6 +49,12 @@ the user pick "Other" when your options miss.
 - **Ask open-ended in prose** when the answer is a paragraph, not a choice
   ("what does this need to do at month six?").
 
+**Start from what the user is looking at.** In the IDE, the open file and any
+selected code arrive as context. When they do, treat them as the likely subject
+and confirm rather than re-deriving it: "You've got `retry.ts` open with the
+backoff block selected — is that what this is about?" Getting that wrong early
+costs several questions.
+
 **Assess scope before the details.** If the request describes several independent
 subsystems ("a platform with chat, file storage, billing, and analytics"), say so
 immediately. Don't spend questions refining a project that needs decomposing

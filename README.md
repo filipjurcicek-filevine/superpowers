@@ -2,24 +2,32 @@
 
 Superpowers is a complete software development methodology for your coding agents, built on top of a set of composable skills and some initial instructions that make sure your agent uses them.
 
-> **This fork targets Claude Code on Opus 5 only.**
+> **This fork targets Claude Code on Opus 5 only** — the CLI and the VS Code
+> extension. Nothing here is written to degrade gracefully on another harness or
+> another model.
 >
-> The skills here have been retuned for one model and one harness. Concretely:
-> worktrees go through `EnterWorktree`/`ExitWorktree`; subagent roles are agent
-> definitions in [`agents/`](agents/) with fixed reasoning-effort tiers rather than
-> model tiers; brainstorming asks through `AskUserQuestion` and shows through
-> `Artifact`; and the anti-rationalization scaffolding is trimmed to what a model
-> with Opus 5's instruction-following actually needs. The multi-harness
-> integrations under `.codex-plugin/`, `.cursor-plugin/`, `.kimi-plugin/`,
-> `.opencode/`, and `.pi/` are inherited from upstream and no longer exercised —
-> the skills no longer adapt their tool names or capabilities.
+> **Optimized for Claude Code.** Every skill names Claude Code's own tools rather
+> than describing them abstractly: `EnterWorktree` / `ExitWorktree` for isolation,
+> `AskUserQuestion` for design questions, `Artifact` for mockups and diagrams,
+> `Explore` and `Workflow` for fan-out, `SendMessage` to resume a subagent.
+> Subagent roles are agent definitions in [`agents/`](agents/) with pinned
+> reasoning-effort tiers instead of model tiers, since one model runs everything.
+> Two `PreToolUse` [hooks](hooks/) make rules structural rather than advisory. In
+> the extension, findings are relayed as clickable workspace-relative links, and
+> the open file and selection are treated as context.
 >
-> These changes are deliberately not upstreamable. See
-> [upstream](https://github.com/obra/superpowers) for the portable version.
+> **Upstreams tracked.** Both are pulled from and neither is pushed to:
+>
+> | Upstream | What we take |
+> |---|---|
+> | [obra/superpowers](https://github.com/obra/superpowers) | The core methodology and skill content — brainstorm → spec → plan → subagent execution → review. |
+> | [pcvelz/superpowers](https://github.com/pcvelz/superpowers) | Claude-Code-native mechanics that fall outside upstream's cross-platform scope: hook-based gates, native task management, and hard-won findings about Opus 5's verbosity in ledgers and fix reports. |
+>
+> Local changes are deliberately not upstreamable to either.
 
 ## Quickstart
 
-Give your agent Superpowers: [Claude Code](#claude-code).
+Give your agent Superpowers: [Claude Code](#claude-code) (CLI or VS Code extension).
 
 ## How it works
 
@@ -71,11 +79,29 @@ The Superpowers marketplace provides Superpowers and some other related plugins 
 
 ### Other harnesses
 
-Upstream ships integrations for Antigravity, Codex, Cursor, Factory Droid,
-Gemini CLI, Copilot CLI, Kimi Code, OpenCode, and Pi. This fork does not
-support them: the skills name Claude Code's tools directly, and the Gemini
-entry point and the per-harness tool-mapping references have been removed.
+Not supported. Upstream ships integrations for Antigravity, Codex, Cursor,
+Factory Droid, Gemini CLI, Copilot CLI, Kimi Code, OpenCode, and Pi; this fork
+has removed all of them — the plugin manifests, the tool-mapping references, the
+per-harness docs, and their tests. The skills name Claude Code's tools directly.
 Install [upstream](https://github.com/obra/superpowers) for those harnesses.
+
+## Hooks
+
+Two `PreToolUse` gates ship registered in [`hooks/hooks.json`](hooks/hooks.json).
+Both fail open on any error and both have a kill switch.
+
+| Hook | Fires on | Blocks | Disable |
+|---|---|---|---|
+| [`pre-agent-effort-pin`](hooks/pre-agent-effort-pin) | `Agent` | A subagent-driven-development dispatch (its prompt carries a `.superpowers/sdd/` artifact path) that names no effort-pinned agent type — it would run at session effort, with no role contract and full write tools, so a reviewer could edit the code under review. | `SUPERPOWERS_EFFORT_GUARD=0` |
+| [`pre-taskupdate-user-gate`](hooks/pre-taskupdate-user-gate) | `TaskUpdate` | Closing a task marked `"userGate": true` whose `verifyCommand` never ran in the session. Catches gates closed by declaring them verified inline. **Dormant** unless native tasks are enabled. | `SUPERPOWERS_USERGATE_GUARD=0` |
+
+### Native task management (optional)
+
+`TaskCreate` / `TaskUpdate` / `TaskList` give dependency enforcement via
+`blockedBy` and a live task view in the IDE. They sit behind
+`CLAUDE_CODE_ENABLE_TASKS`, so they are off by default. With them enabled,
+subagent-driven-development mirrors the plan into tasks and the user-gate hook
+becomes active; the progress ledger stays the resume mechanism either way.
 
 ## The Basic Workflow
 

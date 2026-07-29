@@ -42,6 +42,9 @@ You MUST complete each phase before proceeding to the next.
    - They often contain the exact solution
    - Read stack traces completely
    - Note line numbers, file paths, error codes
+   - In the IDE, the open file and any selection arrive as context — useful as a
+     starting point, but never as the answer. The line the user is looking at is
+     where they noticed the symptom, which is rarely where it originates.
 
 2. **Reproduce Consistently**
    - Can you trigger it reliably?

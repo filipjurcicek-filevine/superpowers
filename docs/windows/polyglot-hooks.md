@@ -150,7 +150,10 @@ Check that the script filename is **extensionless** in `hooks.json`. A command l
 
 ### Hook doesn't fire at all
 
-Verify the `matcher` in `hooks.json` matches the event type your harness emits. Claude Code uses `startup|clear|compact`; Cursor uses `sessionStart`. Check `hooks-cursor.json` for the Cursor variant.
+Verify the `matcher` in `hooks.json` matches what fires it. `SessionStart` uses
+`startup|clear|compact`; a `PreToolUse` entry matches the tool name (`Agent`,
+`TaskUpdate`). A `PreToolUse` gate keyed to a tool the session does not expose —
+`TaskUpdate` without `CLAUDE_CODE_ENABLE_TASKS` — is dormant, not broken.
 
 ## Related Issues
 

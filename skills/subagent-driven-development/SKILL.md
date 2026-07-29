@@ -65,9 +65,42 @@ restart. Use it alongside TodoWrite, not instead of it.
   holds them. Trust the ledger and `git log` over recollection.
 - `git clean -fdx` will destroy the workspace (it's git-ignored scratch); if that
   happens, recover from `git log`.
+- **The ledger records state, not reasoning.** Entries are the one-line forms in
+  this skill — dispatch, fix round, complete, minor, parked, BLOCKED. One event,
+  one line; only a parked ruling may run to three. No methodology narration, no
+  reviewer praise, no self-correction essays, no restating facts an earlier entry
+  already holds. Every extra line is re-read on every later turn. A lesson about
+  your own process is not state: it goes in your final report to the user,
+  because the workspace — this file included — is deleted at Finish.
+- **Append with a shell append**, `cat >> progress.md <<'EOF'`, not the Edit
+  tool. Edit re-sends anchor text that grows with the file and triggers a
+  permission prompt for every entry.
 
 Read the plan once, note its context and Global Constraints, and create a todo
 per task.
+
+**If native tasks are available** (`TaskCreate` / `TaskUpdate` / `TaskList`, gated
+behind `CLAUDE_CODE_ENABLE_TASKS`), mirror the plan into them instead of todos.
+The ledger stays the resume mechanism; tasks add dependency enforcement and a live
+view of progress in the IDE.
+
+- One task per plan task. Keep the subject compact — aim for 60 characters or
+  fewer, no trailing detail. Every task's subject is re-injected into your context
+  on periodic reminders, so a long one is paid for repeatedly. Detail belongs in
+  the description.
+- Set `blockedBy` for real dependencies. That is what stops a later task from
+  being started before the interface it consumes exists.
+- On completion, `TaskUpdate` to `completed` and shrink the description to its
+  **Goal:** line plus `Complete — see ledger.` Full descriptions are re-injected
+  the same way subjects are, and a finished task's detail survives in the plan,
+  its brief, and the ledger.
+- **When the user explicitly orders a verification** — "make sure X passes before
+  moving on", "don't proceed until Y is proven" — that is a user-thrown gate.
+  Create it as its own task, record `"userGate": true` in a `json:metadata` fence
+  in the description alongside the exact command that proves it, and keep its full
+  description on completion. Close it only after re-running that command and
+  capturing the output. Declaring it verified inline, or substituting a cheaper
+  check, is the failure this exists to prevent.
 
 Before dispatching Task 1, scan the plan once for conflicts:
 
@@ -147,7 +180,9 @@ fix-round diffs need it.
 from this skill's directory — it prints the unique file path it wrote; BASE is the
 commit you recorded before dispatching, never `HEAD~1`, which silently drops all
 but the last commit of a multi-commit task), then dispatch the task reviewer with
-the printed path.
+the printed path. Generate it only after the report lands, never while the
+implementer is still working — the diff is a moving target, and a package built
+early arrives stale.
 
 **DONE_WITH_CONCERNS:** the work is complete but the implementer has doubts. Read
 the concerns first. Concerns about correctness or scope get addressed before
@@ -286,8 +321,8 @@ other bookkeeping:
 - `Task <N>: complete (commits <base7>..<head7>, review clean)`
 - `Task <N>: complete (commits <base7>..<head7>, <K> parked)` after a tripped breaker
 
-Then mark the todo complete and move on. Never move to the next task while the
-review has open Critical/Important issues that are neither fixed nor
+Then mark the todo (or task) complete and move on. Never move to the next task
+while the review has open Critical/Important issues that are neither fixed nor
 parked-with-ruling at the cap.
 
 ## Final Review
@@ -338,6 +373,8 @@ Keep the task loop here.
 | "This finding is obviously wrong, I'll drop it" | You adjudicate only at the cap, and every ruling is a ledger entry. Silent discards are forbidden. |
 | "The fix was small, skip the re-review" | Unreviewed fixes are how regressions land. Every round ends with a scoped re-review. |
 | "Ledger bookkeeping is overhead" | The ledger is what survives summarization. Controllers without one have re-dispatched entire completed task sequences. |
+| "The ledger should capture my reasoning" | It's a recovery map. State goes in one-liners; reasoning is a diary that costs context on every later turn. |
+| "I'll note this process lesson in the ledger" | The workspace is deleted at Finish, and the lesson with it. Put it in your final report. |
 
 ## Example Workflow
 

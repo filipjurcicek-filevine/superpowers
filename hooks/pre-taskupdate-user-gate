@@ -1,0 +1,199 @@
+#!/usr/bin/env bash
+# PreToolUse hook on TaskUpdate: block closing a user-thrown gate without evidence.
+#
+# A user-thrown gate is a verification the user explicitly asked for in the
+# conversation ("make sure X passes before moving on", "don't proceed until Y is
+# proven"). subagent-driven-development records those as tasks carrying
+# "userGate": true in a json:metadata fence, alongside the exact command that
+# proves them. The failure this gate exists to prevent is closing such a task by
+# declaring it verified inline, or by substituting a cheaper check.
+#
+# The rule is narrow and checkable: when a task marked userGate is being closed,
+# its verifyCommand must appear in the session transcript after the task was
+# created. Not "something like it" — the command, actually run.
+#
+# DORMANT unless native tasks are enabled (CLAUDE_CODE_ENABLE_TASKS). Without
+# them TaskUpdate never fires and this hook never runs.
+#
+# Decision order:
+#   1. SUPERPOWERS_USERGATE_GUARD=0     -> allow (kill switch)
+#   2. tool_name != TaskUpdate          -> allow
+#   3. status != completed              -> allow
+#   4. no transcript                    -> allow (nothing to check against)
+#   5. task not marked userGate         -> allow
+#   6. no verifyCommand in its metadata -> allow (nothing checkable; the prose
+#                                          contract in the skill still binds)
+#   7. verifyCommand appears in the transcript after creation -> allow
+#   8. otherwise                        -> block (exit 2)
+#
+# Fails open on every error.
+
+set -uo pipefail
+
+ALLOW='{"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "allow"}}'
+
+if [ "${SUPERPOWERS_USERGATE_GUARD:-1}" = "0" ]; then
+    echo "$ALLOW"
+    exit 0
+fi
+
+trap 'echo "$ALLOW"; exit 0' ERR
+
+INPUT=$(cat)
+
+FIELDS=$(printf '%s' "$INPUT" | jq -r '
+    [(.tool_name // ""), (.tool_input.status // ""), (.tool_input.taskId // ""), (.transcript_path // "")]
+    | map(tostring | gsub("\\r|\\n"; " ")) | .[]' 2>/dev/null | tr -d '\r')
+{
+    IFS= read -r TOOL_NAME
+    IFS= read -r STATUS
+    IFS= read -r TASK_ID
+    IFS= read -r TRANSCRIPT_PATH
+} <<< "$FIELDS" || true
+
+[ "${TOOL_NAME:-}" = "TaskUpdate" ] || { echo "$ALLOW"; exit 0; }
+[ "${STATUS:-}" = "completed" ] || { echo "$ALLOW"; exit 0; }
+[ -n "${TASK_ID:-}" ] || { echo "$ALLOW"; exit 0; }
+[ -n "${TRANSCRIPT_PATH:-}" ] && [ -f "$TRANSCRIPT_PATH" ] || { echo "$ALLOW"; exit 0; }
+
+# Resolve the task, read its metadata fence, and look for its verifyCommand in
+# everything the session did after the task was created.
+#
+# The transcript is streamed in binary with a substring pre-filter so only
+# candidate lines are parsed: this keeps the scan linear in bytes and means one
+# invalid UTF-8 byte poisons its own line instead of the whole check.
+#
+# Task ids come from the TaskCreate tool_result ("Task #N created successfully"),
+# never from the tool_use input — keying off creation order mis-identifies tasks
+# as soon as the numbering shifts.
+#
+# Output: three lines — is_user_gate, verify_command, evidence_found.
+PY_SCAN='
+import json, re, sys
+
+path, want_id = sys.argv[1], sys.argv[2]
+CREATE_RE = re.compile(r"Task #(\d+) created successfully")
+FENCE_RE = re.compile(r"```json:metadata\s*\n(.*?)\n```", re.DOTALL)
+
+creates = []      # (tool_use_id, description) in order
+real_id = {}      # tool_use_id -> native id
+descriptions = {} # native id -> latest description
+create_line = {}  # native id -> line number of its creation
+lines = []        # (lineno, haystack) for evidence scanning
+
+try:
+    f = open(path, "rb")
+except Exception:
+    print("false\n\nfalse")
+    sys.exit(0)
+
+with f:
+    for n, raw in enumerate(f):
+        interesting = (b"TaskCreate" in raw or b"TaskUpdate" in raw
+                       or b"created successfully" in raw)
+        try:
+            e = json.loads(raw)
+        except Exception:
+            continue
+        content = (e.get("message") or {}).get("content") or []
+        if not isinstance(content, list):
+            continue
+        text_parts = []
+        for c in content:
+            if not isinstance(c, dict):
+                continue
+            t, inp = c.get("type"), c.get("input") or {}
+            if interesting and t == "tool_use" and c.get("name") == "TaskCreate":
+                creates.append((c.get("id"), inp.get("description", "") or ""))
+            elif interesting and t == "tool_use" and c.get("name") == "TaskUpdate":
+                tid = str(inp.get("taskId", ""))
+                if tid and inp.get("description"):
+                    descriptions[tid] = inp["description"]
+            elif t == "tool_result":
+                body = c.get("content")
+                if isinstance(body, list):
+                    body = " ".join(b.get("text", "") for b in body
+                                    if isinstance(b, dict))
+                body = body if isinstance(body, str) else ""
+                if interesting:
+                    m = CREATE_RE.search(body)
+                    if m:
+                        real_id[c.get("tool_use_id")] = m.group(1)
+                        create_line[m.group(1)] = n
+                text_parts.append(body)
+            elif t == "tool_use":
+                text_parts.append(json.dumps(inp))
+        if text_parts:
+            lines.append((n, " ".join(text_parts)))
+
+if real_id:
+    for tool_use_id, desc in creates:
+        tid = real_id.get(tool_use_id)
+        if tid:
+            descriptions.setdefault(tid, desc)
+else:
+    for i, (_, desc) in enumerate(creates, 1):
+        descriptions.setdefault(str(i), desc)
+
+desc = descriptions.get(want_id, "")
+meta = {}
+m = FENCE_RE.search(desc)
+if m:
+    try:
+        meta = json.loads(m.group(1))
+    except Exception:
+        meta = {}
+
+is_gate = bool(meta.get("userGate")) or "user-gate" in (meta.get("tags") or [])
+verify = str(meta.get("verifyCommand") or "").strip()
+
+found = False
+if verify:
+    after = create_line.get(want_id, -1)
+    for n, hay in lines:
+        if n > after and verify in hay:
+            found = True
+            break
+
+print("\n".join([
+    "true" if is_gate else "false",
+    verify.replace("\n", " ").replace("\r", " "),
+    "true" if found else "false",
+]))
+'
+
+RESULT=$(python3 -c "$PY_SCAN" "$TRANSCRIPT_PATH" "$TASK_ID" 2>/dev/null | tr -d '\r') \
+    || RESULT=$'false\n\nfalse'
+{
+    IFS= read -r IS_GATE
+    IFS= read -r VERIFY_CMD
+    IFS= read -r EVIDENCE
+} <<< "$RESULT" || true
+
+[ "${IS_GATE:-false}" = "true" ] || { echo "$ALLOW"; exit 0; }
+[ -n "${VERIFY_CMD:-}" ] || { echo "$ALLOW"; exit 0; }
+[ "${EVIDENCE:-false}" = "true" ] && { echo "$ALLOW"; exit 0; }
+
+{
+    echo "USER-ORDERED GATE CLOSED WITHOUT EVIDENCE"
+    echo
+    echo "Task #$TASK_ID is marked \"userGate\": true — the user asked for this"
+    echo "verification explicitly. Its metadata names the command that proves it:"
+    echo
+    echo "    $VERIFY_CMD"
+    echo
+    echo "That command does not appear anywhere in this session after the task was"
+    echo "created, so there is no captured output behind the claim."
+    echo
+    echo "Run it, read the output, and confirm every acceptance criterion against"
+    echo "something observable in that output. Then close the task."
+    echo
+    echo "Substituting a cheaper check, or judging it verified from what you already"
+    echo "believe about the code, is the failure this gate exists to catch. If the"
+    echo "verifyCommand itself is wrong, fix the task metadata via TaskUpdate and"
+    echo "say so — do not route around it."
+    echo
+    echo "(Disable: SUPERPOWERS_USERGATE_GUARD=0)"
+} >&2
+
+exit 2

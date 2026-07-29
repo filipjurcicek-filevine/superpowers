@@ -60,6 +60,11 @@ findings — the reviewer's report goes to you, not to them. If the host renders
 typed findings via `ReportFindings`, use it instead of pasting the report, and
 rank by severity.
 
+In the VS Code extension, write each location as a markdown link rather than bare
+text — `[auth.ts:42](src/auth.ts#L42)`, path relative to the workspace root — so
+the user can jump straight to it. The reviewer reports plain `file:line`;
+converting it is your job when relaying.
+
 ## Common Rationalizations
 
 | Excuse | Reality |
