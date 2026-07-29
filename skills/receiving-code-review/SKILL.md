@@ -1,205 +1,114 @@
 ---
 name: receiving-code-review
-description: Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation
+description: Use when receiving code review feedback, before implementing any of the suggestions — especially when the feedback is unclear or looks technically questionable
 ---
 
-# Code Review Reception
+# Receiving Code Review
 
 ## Overview
 
-Code review requires technical evaluation, not emotional performance.
+Review feedback is a set of technical claims. Evaluate each one against the
+codebase before acting on it.
 
-**Core principle:** Verify before implementing. Ask before assuming. Technical correctness over social comfort.
+**Core principle:** verify before implementing. Ask before assuming.
 
-## The Response Pattern
+## The Response Contract
 
-```
-WHEN receiving code review feedback:
+1. **Read** the complete feedback.
+2. **Understand** each item — restate the requirement in your own words, or ask.
+3. **Verify** each item against the codebase as it actually is.
+4. **Evaluate** whether it is technically sound for this codebase.
+5. **Respond** with a technical acknowledgment or reasoned pushback.
+6. **Implement** one item at a time, testing each.
 
-1. READ: Complete feedback without reacting
-2. UNDERSTAND: Restate requirement in own words (or ask)
-3. VERIFY: Check against codebase reality
-4. EVALUATE: Technically sound for THIS codebase?
-5. RESPOND: Technical acknowledgment or reasoned pushback
-6. IMPLEMENT: One item at a time, test each
-```
+## Unclear Items Block the Whole Batch
 
-## Forbidden Responses
-
-**NEVER:**
-- "You're absolutely right!" (explicit instruction-file violation)
-- "Great point!" / "Excellent feedback!" (performative)
-- "Let me implement that now" (before verification)
-
-**INSTEAD:**
-- Restate the technical requirement
-- Ask clarifying questions
-- Push back with technical reasoning if wrong
-- Just start working (actions > words)
-
-## Handling Unclear Feedback
+If any item is unclear, ask about it before implementing *any* of them. Items are
+often related, and partial understanding produces the wrong implementation.
 
 ```
-IF any item is unclear:
-  STOP - do not implement anything yet
-  ASK for clarification on unclear items
+The user: "Fix 1-6"
+You understand 1, 2, 3, 6. Unclear on 4, 5.
 
-WHY: Items may be related. Partial understanding = wrong implementation.
+❌ Implement 1,2,3,6 now, ask about 4,5 later
+✅ "I understand items 1, 2, 3, 6. Need clarification on 4 and 5 before implementing."
 ```
 
-**Example:**
-```
-your human partner: "Fix 1-6"
-You understand 1,2,3,6. Unclear on 4,5.
+## By Source
 
-❌ WRONG: Implement 1,2,3,6 now, ask about 4,5 later
-✅ RIGHT: "I understand items 1,2,3,6. Need clarification on 4 and 5 before proceeding."
-```
+**From the user:** trusted. Implement once you understand it; still ask when the
+scope is unclear.
 
-## Source-Specific Handling
+**From an external reviewer:** check before implementing.
 
-### From your human partner
-- **Trusted** - implement after understanding
-- **Still ask** if scope unclear
-- **No performative agreement**
-- **Skip to action** or technical acknowledgment
+- Is it technically correct for *this* codebase?
+- Does it break existing functionality?
+- Is there a reason the current implementation is the way it is?
+- Does it hold on every platform and version this project supports?
+- Does the reviewer have the full context?
 
-### From External Reviewers
-```
-BEFORE implementing:
-  1. Check: Technically correct for THIS codebase?
-  2. Check: Breaks existing functionality?
-  3. Check: Reason for current implementation?
-  4. Check: Works on all platforms/versions?
-  5. Check: Does reviewer understand full context?
+When a suggestion looks wrong, push back with technical reasoning. When you
+cannot verify it, say so: "I can't verify this without [X]. Should I investigate,
+ask, or proceed?" When it conflicts with a decision the user already made, raise
+that before doing anything.
 
-IF suggestion seems wrong:
-  Push back with technical reasoning
+## YAGNI Check on "Do It Properly" Feedback
 
-IF can't easily verify:
-  Say so: "I can't verify this without [X]. Should I [investigate/ask/proceed]?"
+When a reviewer asks you to implement something properly, grep for its actual
+usage first.
 
-IF conflicts with your human partner's prior decisions:
-  Stop and discuss with your human partner first
-```
-
-**your human partner's rule:** "External feedback - be skeptical, but check carefully"
-
-## YAGNI Check for "Professional" Features
-
-```
-IF reviewer suggests "implementing properly":
-  grep codebase for actual usage
-
-  IF unused: "This endpoint isn't called. Remove it (YAGNI)?"
-  IF used: Then implement properly
-```
-
-**your human partner's rule:** "You and reviewer both report to me. If we don't need this feature, don't add it."
+- Unused → "Nothing calls this endpoint. Remove it (YAGNI)?"
+- Used → implement it properly.
 
 ## Implementation Order
 
+1. Clarify anything unclear.
+2. Blocking issues first (breakage, security).
+3. Then simple fixes (typos, imports).
+4. Then complex fixes (refactoring, logic).
+5. Test each fix individually; verify no regressions.
+
+## When to Push Back
+
+Push back when the suggestion breaks existing functionality, the reviewer lacks
+context, it violates YAGNI, it is wrong for this stack, legacy or compatibility
+reasons exist, or it conflicts with the user's architectural decisions.
+
+Push back with technical reasoning and specifics: reference the tests or code
+that settle it, ask a precise question, and involve the user when the question is
+architectural. If you pushed back and were wrong, say what you checked and what
+it showed, then implement.
+
+## Examples
+
+**Verify before implementing:**
 ```
-FOR multi-item feedback:
-  1. Clarify anything unclear FIRST
-  2. Then implement in this order:
-     - Blocking issues (breaks, security)
-     - Simple fixes (typos, imports)
-     - Complex fixes (refactoring, logic)
-  3. Test each fix individually
-  4. Verify no regressions
-```
-
-## When To Push Back
-
-Push back when:
-- Suggestion breaks existing functionality
-- Reviewer lacks full context
-- Violates YAGNI (unused feature)
-- Technically incorrect for this stack
-- Legacy/compatibility reasons exist
-- Conflicts with your human partner's architectural decisions
-
-**How to push back:**
-- Use technical reasoning, not defensiveness
-- Ask specific questions
-- Reference working tests/code
-- Involve your human partner if architectural
-
-**If you're uncomfortable pushing back out loud:** Name that tension, then tell your partner about the issue you've seen. They'll appreciate your honesty.
-
-## Acknowledging Correct Feedback
-
-When feedback IS correct:
-```
-✅ "Fixed. [Brief description of what changed]"
-✅ "Good catch - [specific issue]. Fixed in [location]."
-✅ [Just fix it and show in the code]
-
-❌ "You're absolutely right!"
-❌ "Great point!"
-❌ "Thanks for catching that!"
-❌ "Thanks for [anything]"
-❌ ANY gratitude expression
+Reviewer: "Remove this legacy code"
+✅ "Checked: build target is 10.15+, this API needs 13+. The legacy path is
+   needed for backward compat. The current impl does have the wrong bundle ID —
+   fix that, or drop pre-13 support?"
 ```
 
-**Why no thanks:** Actions speak. Just fix it. The code itself shows you heard the feedback.
-
-**If you catch yourself about to write "Thanks":** DELETE IT. State the fix instead.
-
-## Gracefully Correcting Your Pushback
-
-If you pushed back and were wrong:
+**YAGNI:**
 ```
-✅ "You were right - I checked [X] and it does [Y]. Implementing now."
-✅ "Verified this and you're correct. My initial understanding was wrong because [reason]. Fixing."
-
-❌ Long apology
-❌ Defending why you pushed back
-❌ Over-explaining
+Reviewer: "Implement proper metrics tracking with database, date filters, CSV export"
+✅ "Grepped the codebase — nothing calls this endpoint. Remove it (YAGNI)? Or is
+   there usage I'm missing?"
 ```
-
-State the correction factually and move on.
 
 ## Common Mistakes
 
 | Mistake | Fix |
 |---------|-----|
-| Performative agreement | State requirement or just act |
-| Blind implementation | Verify against codebase first |
-| Batch without testing | One at a time, test each |
-| Assuming reviewer is right | Check if breaks things |
-| Avoiding pushback | Technical correctness > comfort |
-| Partial implementation | Clarify all items first |
-| Can't verify, proceed anyway | State limitation, ask for direction |
-
-## Real Examples
-
-**Performative Agreement (Bad):**
-```
-Reviewer: "Remove legacy code"
-❌ "You're absolutely right! Let me remove that..."
-```
-
-**Technical Verification (Good):**
-```
-Reviewer: "Remove legacy code"
-✅ "Checking... build target is 10.15+, this API needs 13+. Need legacy for backward compat. Current impl has wrong bundle ID - fix it or drop pre-13 support?"
-```
-
-**YAGNI (Good):**
-```
-Reviewer: "Implement proper metrics tracking with database, date filters, CSV export"
-✅ "Grepped codebase - nothing calls this endpoint. Remove it (YAGNI)? Or is there usage I'm missing?"
-```
-
-**Unclear Item (Good):**
-```
-your human partner: "Fix items 1-6"
-You understand 1,2,3,6. Unclear on 4,5.
-✅ "Understand 1,2,3,6. Need clarification on 4 and 5 before implementing."
-```
+| Implementing before verifying | Check against the codebase first |
+| Assuming the reviewer is right | Check whether it breaks anything |
+| Batching fixes without testing | One at a time, test each |
+| Implementing part of an unclear batch | Clarify every item first |
+| Proceeding on something you can't verify | State the limitation, ask for direction |
+| Avoiding pushback | Technical correctness over comfort |
 
 ## GitHub Thread Replies
 
-When replying to inline review comments on GitHub, reply in the comment thread (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`), not as a top-level PR comment.
+Reply to inline review comments in their thread
+(`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`), not as a
+top-level PR comment.

@@ -1,21 +1,24 @@
 ---
 name: using-git-worktrees
-description: Use when starting feature work that needs isolation from current workspace or before executing implementation plans - ensures an isolated workspace exists via native tools or git worktree fallback
+description: Use when starting feature work that needs isolation from the current workspace, or before executing an implementation plan
 ---
 
 # Using Git Worktrees
 
 ## Overview
 
-Ensure work happens in an isolated workspace. Prefer your platform's native worktree tools. Fall back to manual git worktrees only when no native tool is available.
+Ensure work happens in an isolated workspace. Claude Code owns worktree
+creation through `EnterWorktree` and `ExitWorktree`; this skill decides
+whether a worktree is needed and gets consent to create one.
 
-**Core principle:** Detect existing isolation first. Then use native tools. Then fall back to git. Never fight the harness.
+**Core principle:** Detect existing isolation first. Then get consent. Then
+use `EnterWorktree`. Never `git worktree add`.
 
 **Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
 
 ## Step 0: Detect Existing Isolation
 
-**Before creating anything, check if you are already in an isolated workspace.**
+Before creating anything, check whether you are already isolated.
 
 ```bash
 GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
@@ -23,81 +26,53 @@ GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
 BRANCH=$(git branch --show-current)
 ```
 
-**Submodule guard:** `GIT_DIR != GIT_COMMON` is also true inside git submodules. Before concluding "already in a worktree," verify you are not in a submodule:
+**Submodule guard:** `GIT_DIR != GIT_COMMON` is also true inside a submodule.
 
 ```bash
 # If this returns a path, you're in a submodule, not a worktree — treat as normal repo
 git rev-parse --show-superproject-working-tree 2>/dev/null
 ```
 
-**If `GIT_DIR != GIT_COMMON` (and not a submodule):** You are already in a linked worktree. Skip to Step 2 (Project Setup). Do NOT create another worktree.
+**If `GIT_DIR != GIT_COMMON` and not a submodule:** you are already in a
+linked worktree. Skip to Step 2. Do not create another one.
 
 Report with branch state:
 - On a branch: "Already in isolated workspace at `<path>` on branch `<name>`."
 - Detached HEAD: "Already in isolated workspace at `<path>` (detached HEAD, externally managed). Branch creation needed at finish time."
 
-**If `GIT_DIR == GIT_COMMON` (or in a submodule):** You are in a normal repo checkout.
+**If `GIT_DIR == GIT_COMMON` or in a submodule:** you are in a normal checkout.
+Continue to Step 1.
 
-Has the user already indicated their worktree preference in your instructions? If not, ask for consent before creating a worktree:
+## Step 1: Get Consent, Then Enter
+
+`EnterWorktree` may only be used when the user or the project's instructions
+asked for a worktree. The consent question below is what supplies that
+authorization — a yes to it is an explicit request.
+
+If CLAUDE.md, AGENTS.md, or memory already declares a worktree preference,
+honor it without asking. Otherwise ask:
 
 > "Would you like me to set up an isolated worktree? It protects your current branch from changes."
 
-Honor any existing declared preference without asking. If the user declines consent, work in place and skip to Step 2.
+**On yes:** call `EnterWorktree` with a `name` describing the work
+(`add-retry-logic`). It creates the worktree under `.claude/worktrees/`, puts
+it on a new branch, and switches the session into it.
 
-## Step 1: Create Isolated Workspace
+**Check the base ref before you start.** `EnterWorktree` branches from
+`origin/<default-branch>` by default (the `worktree.baseRef: fresh` setting).
+If this work builds on local commits that are not pushed, a fresh base
+silently omits them. When the plan or the conversation depends on local
+history, confirm the base is what you need before implementing — and tell the
+user if it isn't, rather than working from the wrong base.
 
-**You have two mechanisms. Try them in this order.**
+**On no:** work in place and skip to Step 2. Never fall back to
+`git worktree add` — a manual worktree is state the harness cannot see,
+`ExitWorktree` will not clean it up, and cleanup at finish time silently
+becomes a no-op.
 
-### 1a. Native Worktree Tools (preferred)
-
-The user has asked for an isolated workspace (Step 0 consent). Do you already have a way to create a worktree? It might be a tool with a name like `EnterWorktree`, `WorktreeCreate`, a `/worktree` command, or a `--worktree` flag. If you do, use it and skip to Step 2.
-
-Native tools handle directory placement, branch creation, and cleanup automatically. Using `git worktree add` when you have a native tool creates phantom state your harness can't see or manage.
-
-Only proceed to Step 1b if you have no native worktree tool available.
-
-### 1b. Git Worktree Fallback
-
-**Only use this if Step 1a does not apply** — you have no native worktree tool available. Create a worktree manually using git.
-
-#### Directory Selection
-
-Follow this priority order. Explicit user preference always beats observed filesystem state.
-
-1. **Check your instructions for a declared worktree directory preference.** If the user has already specified one, use it without asking.
-
-2. **Check for an existing project-local worktree directory:**
-   ```bash
-   ls -d .worktrees 2>/dev/null     # Preferred (hidden)
-   ls -d worktrees 2>/dev/null      # Alternative
-   ```
-   If found, use it. If both exist, `.worktrees` wins.
-
-3. **If there is no other guidance available**, default to `.worktrees/` at the project root.
-
-#### Safety Verification (project-local directories only)
-
-**MUST verify directory is ignored before creating worktree:**
-
-```bash
-git check-ignore -q .worktrees 2>/dev/null || git check-ignore -q worktrees 2>/dev/null
-```
-
-**If NOT ignored:** Add to .gitignore, commit the change, then proceed.
-
-**Why critical:** Prevents accidentally committing worktree contents to repository.
-
-#### Create the Worktree
-
-```bash
-# Determine path based on chosen location
-path="$LOCATION/$BRANCH_NAME"
-
-git worktree add "$path" -b "$BRANCH_NAME"
-cd "$path"
-```
-
-**Sandbox fallback:** If `git worktree add` fails with a permission error (sandbox denial), tell the user the sandbox blocked worktree creation and you're working in the current directory instead. Then run setup and baseline tests in place.
+**Already in an `EnterWorktree` session:** you cannot create a second one.
+Use the existing workspace, or pass `path` to switch into another worktree of
+this repository.
 
 ## Step 2: Project Setup
 
@@ -120,21 +95,16 @@ if [ -f go.mod ]; then go mod download; fi
 
 ## Step 3: Verify Clean Baseline
 
-Run tests to ensure workspace starts clean:
+Run the project's tests so the workspace starts from a known state
+(`npm test` / `cargo test` / `pytest` / `go test ./...`).
 
-```bash
-# Use project-appropriate command
-npm test / cargo test / pytest / go test ./...
-```
+**If tests fail:** report the failures and ask whether to proceed or
+investigate. Proceeding past a dirty baseline is the user's call.
 
-**If tests fail:** Report failures, ask whether to proceed or investigate.
-
-**If tests pass:** Report ready.
-
-### Report
+**If tests pass:** report ready.
 
 ```
-Worktree ready at <full-path>
+Worktree ready at <full-path> on branch <name> (based on <base-ref>)
 Tests passing (<N> tests, 0 failures)
 Ready to implement <feature-name>
 ```
@@ -143,25 +113,25 @@ Ready to implement <feature-name>
 
 | Situation | Action |
 |-----------|--------|
-| Already in linked worktree | Skip creation (Step 0) |
+| Already in a linked worktree | Skip creation (Step 0) |
 | In a submodule | Treat as normal repo (Step 0 guard) |
-| Native worktree tool available | Use it (Step 1a) |
-| No native tool | Git worktree fallback (Step 1b) |
-| `.worktrees/` exists | Use it (verify ignored) |
-| `worktrees/` exists | Use it (verify ignored) |
-| Both exist | Use `.worktrees/` |
-| Neither exists | Check instruction file, then default `.worktrees/` |
-| Directory not ignored | Add to .gitignore + commit |
-| Permission error on create | Sandbox fallback, work in place |
-| Tests fail during baseline | Report failures + ask |
+| Normal checkout, no declared preference | Ask for consent, then `EnterWorktree` |
+| Preference declared in CLAUDE.md / memory | `EnterWorktree` without asking |
+| Consent declined | Work in place |
+| Already in an `EnterWorktree` session | Use it; `path` to switch, never a second `name` |
+| Work depends on unpushed local commits | Confirm the base ref before implementing |
+| Baseline tests fail | Report failures + ask |
 | No package.json/Cargo.toml | Skip dependency install |
+
+Cleanup happens at finish time via `ExitWorktree` — see
+superpowers:finishing-a-development-branch.
 
 ## Common Rationalizations
 
 | Excuse | Reality |
 |--------|---------|
 | "I'm obviously not in a worktree — no need to check" | Run Step 0. Harness-created isolation and submodules both fool eyeballing; the detection commands settle it. |
-| "`git worktree add` is quicker than hunting for a native tool" | A native tool (e.g. `EnterWorktree`) owns placement, branching, and cleanup. Bypassing it is the #1 mistake — it creates phantom state your harness can't see or manage. |
-| "The worktree directory is surely ignored already" | Run `git check-ignore`. An unignored worktree directory commits the whole tree into the repo. |
-| "Any directory name works" | Explicit instructions beat an existing project-local directory, which beats the `.worktrees/` default. |
-| "The workspace is fresh — baseline tests can wait" | A dirty baseline makes every later failure ambiguous. Run the tests now; proceeding past failures is your human partner's call. |
+| "`git worktree add` is quicker" | It creates state the harness cannot see, and it makes finish-time cleanup a silent no-op. `EnterWorktree` or work in place. |
+| "The user obviously wants isolation" | `EnterWorktree` needs an explicit request. Ask, or find the declared preference. |
+| "The base ref doesn't matter" | A fresh base drops unpushed local commits. Check it whenever the work builds on them. |
+| "The workspace is fresh — baseline tests can wait" | A dirty baseline makes every later failure ambiguous. Run them now. |

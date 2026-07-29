@@ -1,120 +1,57 @@
 ---
 name: verification-before-completion
-description: Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always
+description: Use when about to claim work is complete, fixed, or passing — before committing, pushing, or creating a PR
 ---
 
 # Verification Before Completion
 
 ## Overview
 
-**Core principle:** Evidence before claims, always.
+**Core principle:** evidence before claims, always. A claim you have not run the
+command for in this message is a guess wearing a result's clothing.
 
-**Violating the letter of this rule is violating the spirit of this rule.**
+## The Gate
 
-## The Iron Law
+Before stating any status:
 
-```
-NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE
-```
+1. **Identify** the command that proves the claim.
+2. **Run** it fresh and complete — not a subset, not a previous run.
+3. **Read** the full output: exit code, failure count, warnings.
+4. **State** the claim with that evidence, or state the actual status with it.
 
-If you haven't run the verification command in this message, you cannot claim it passes.
+## What Each Claim Requires
 
-## The Gate Function
-
-```
-BEFORE claiming any status or expressing satisfaction:
-
-1. IDENTIFY: What command proves this claim?
-2. RUN: Execute the FULL command (fresh, complete)
-3. READ: Full output, check exit code, count failures
-4. VERIFY: Does output confirm the claim?
-   - If NO: State actual status with evidence
-   - If YES: State claim WITH evidence
-5. ONLY THEN: Make the claim
-
-Skip any step = lying, not verifying
-```
-
-## Common Failures
-
-| Claim | Requires | Not Sufficient |
+| Claim | Requires | Not sufficient |
 |-------|----------|----------------|
-| Tests pass | Test command output: 0 failures | Previous run, "should pass" |
-| Linter clean | Linter output: 0 errors | Partial check, extrapolation |
-| Build succeeds | Build command: exit 0 | Linter passing, logs look good |
-| Bug fixed | Test original symptom: passes | Code changed, assumed fixed |
-| Regression test works | Red-green cycle verified | Test passes once |
-| Agent completed | VCS diff shows changes | Agent reports "success" |
-| Requirements met | Line-by-line checklist | Tests passing |
+| Tests pass | Test command output: 0 failures | A previous run, "should pass" |
+| Linter clean | Linter output: 0 errors | A partial check, extrapolation |
+| Build succeeds | Build command: exit 0 | Linter passing, logs looking fine |
+| Bug fixed | The original symptom retested: passes | Code changed, fix assumed |
+| Regression test works | Red-green verified by reverting the fix | The test passing once |
+| Subagent completed | The VCS diff shows the changes | The agent's success report |
+| Requirements met | Line-by-line checklist against the spec | Tests passing |
 
-## Red Flags - STOP
+## Two Protocols Worth Spelling Out
 
-- Using "should", "probably", "seems to"
-- Expressing satisfaction before verification ("Great!", "Perfect!", "Done!", etc.)
-- About to commit/push/PR without verification
-- Trusting agent success reports
-- Relying on partial verification
-- Thinking "just this once"
-- Tired and wanting work over
-- **ANY wording implying success without having run verification**
+**Regression tests.** A test that passes against fixed code has not been shown to
+catch anything:
 
-## Rationalization Prevention
+```
+Write test → run (passes) → revert the fix → run (MUST FAIL) → restore fix → run (passes)
+```
+
+Without the revert step, you have a test that agrees with the current code.
+
+**Subagent reports.** A subagent reporting success is a claim about the
+repository, not an observation of it. Check `git status` / `git diff` for the
+changes before you repeat the claim upward. Subagents report success for work
+they abandoned, work they only described, and work they wrote to the wrong path.
+
+## Common Rationalizations
 
 | Excuse | Reality |
 |--------|---------|
-| "Should work now" | RUN the verification |
-| "I'm confident" | Confidence ≠ evidence |
-| "Just this once" | No exceptions |
-| "Linter passed" | Linter ≠ compiler |
-| "Agent said success" | Verify independently |
-| "I'm tired" | Exhaustion ≠ excuse |
-| "Partial check is enough" | Partial proves nothing |
-| "Different words so rule doesn't apply" | Spirit over letter |
-
-## Key Patterns
-
-**Tests:**
-```
-✅ [Run test command] [See: 34/34 pass] "All tests pass"
-❌ "Should pass now" / "Looks correct"
-```
-
-**Regression tests (TDD Red-Green):**
-```
-✅ Write → Run (pass) → Revert fix → Run (MUST FAIL) → Restore → Run (pass)
-❌ "I've written a regression test" (without red-green verification)
-```
-
-**Build:**
-```
-✅ [Run build] [See: exit 0] "Build passes"
-❌ "Linter passed" (linter doesn't check compilation)
-```
-
-**Requirements:**
-```
-✅ Re-read plan → Create checklist → Verify each → Report gaps or completion
-❌ "Tests pass, phase complete"
-```
-
-**Agent delegation:**
-```
-✅ Agent reports success → Check VCS diff → Verify changes → Report actual state
-❌ Trust agent report
-```
-
-## When To Apply
-
-**ALWAYS before:**
-- ANY variation of success/completion claims
-- ANY expression of satisfaction
-- ANY positive statement about work state
-- Committing, PR creation, task completion
-- Moving to next task
-- Delegating to agents
-
-**Rule applies to:**
-- Exact phrases
-- Paraphrases and synonyms
-- Implications of success
-- ANY communication suggesting completion/correctness
+| "Should work now" | Run the verification. |
+| "Linter passed" | The linter doesn't compile or run anything. |
+| "Partial check is enough" | A subset proves the subset. |
+| "The agent said it succeeded" | Check the diff. |

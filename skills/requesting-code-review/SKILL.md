@@ -1,95 +1,70 @@
 ---
 name: requesting-code-review
-description: Use when completing tasks, implementing major features, or before merging to verify work meets requirements
+description: Use when a task or feature is complete, or before merging, to check the work against its requirements
 ---
 
 # Requesting Code Review
 
-Dispatch a code reviewer subagent to catch issues before they cascade. The reviewer gets precisely crafted context for evaluation — never your session's history.
+Dispatch the `superpowers:code-reviewer` agent to review completed work.
 
-**Core principle:** Review early, review often.
+**Why dispatch instead of reading the diff yourself:** independence. You wrote
+the code, or you coordinated the agent that did, and you already believe it is
+right — the same reasoning that produced the code will bless it. A reviewer with
+no stake in those decisions reads what the diff actually says. Independence, not
+context economy, is the reason; a fresh reader is worth the dispatch even when
+your context has room to spare.
 
-## When to Request Review
+## When to Request
 
-**Mandatory:**
+**Dispatch a reviewer:**
 - After each task in subagent-driven development
-- After completing major feature
-- Before merge to main
+- After completing a feature
+- Before merging to main
+- After a complex bug fix
 
-**Optional but valuable:**
-- When stuck (fresh perspective)
-- Before refactoring (baseline check)
-- After fixing complex bug
+**Inline self-review is enough:** a few lines, a typo, a mechanical rename, a
+change you can fully verify by rereading it. Don't dispatch a reviewer for a
+one-line diff.
+
+**Worth it when stuck:** a review of work-in-progress often finds the thing you
+have stopped being able to see.
 
 ## How to Request
 
-**1. Get git SHAs:**
+**1. Get the range:**
 ```bash
-BASE_SHA=$(git rev-parse HEAD~1)  # or origin/main
+BASE_SHA=$(git merge-base main HEAD)   # or the task's recorded base
 HEAD_SHA=$(git rev-parse HEAD)
 ```
 
-**2. Dispatch code reviewer subagent:**
+**2. Dispatch `superpowers:code-reviewer`** with:
+- what was implemented (one or two lines)
+- the requirements it should satisfy — a plan file path, task text, or the spec
+- the range, and a diff file if you have one (in subagent-driven development,
+  `scripts/review-package` writes it; the reviewer then reads one file instead of
+  re-deriving the diff)
 
-Dispatch a `general-purpose` subagent, filling the template at [code-reviewer.md](code-reviewer.md)
+The agent definition carries the review rubric, the severity calibration, and the
+output format, and it has no file-editing tools — the review is read-only by
+construction. Do not restate the rubric in your dispatch, and do not tell it what
+not to flag.
 
-**Placeholders:**
-- `{DESCRIPTION}` - Brief summary of what you built
-- `{PLAN_OR_REQUIREMENTS}` - What it should do
-- `{BASE_SHA}` - Starting commit
-- `{HEAD_SHA}` - Ending commit
+**3. Act on the findings:**
+- Critical: fix before anything else
+- Important: fix before proceeding
+- Minor: record them; triage before merge
+- Wrong: push back with technical reasoning — see superpowers:receiving-code-review
 
-**3. Act on feedback:**
-- Fix Critical issues immediately
-- Fix Important issues before proceeding
-- Note Minor issues for later
-- Push back if reviewer is wrong (with reasoning)
-
-## Example
-
-```
-[Just completed Task 2: Add verification function]
-
-You: Let me request code review before proceeding.
-
-BASE_SHA=$(git log --oneline | grep "Task 1" | head -1 | awk '{print $1}')
-HEAD_SHA=$(git rev-parse HEAD)
-
-[Dispatch code reviewer subagent]
-  DESCRIPTION: Added verifyIndex() and repairIndex() with 4 issue types
-  PLAN_OR_REQUIREMENTS: Task 2 from docs/superpowers/plans/deployment-plan.md
-  BASE_SHA: a7981ec
-  HEAD_SHA: 3df7661
-
-[Subagent returns]:
-  Strengths: Clean architecture, real tests
-  Issues:
-    Important: Missing progress indicators
-    Minor: Magic number (100) for reporting interval
-  Assessment: Ready to proceed
-
-You: [Fix progress indicators]
-[Continue to Task 3]
-```
+**Surfacing findings to the user.** When the user asked for the review, relay the
+findings — the reviewer's report goes to you, not to them. If the host renders
+typed findings via `ReportFindings`, use it instead of pasting the report, and
+rank by severity.
 
 ## Common Rationalizations
 
 | Excuse | Reality |
 |--------|---------|
-| "I'll just review the diff myself instead of dispatching a reviewer" | You're the coordinator — reviewing the diff inline burns the context window you need to keep driving the work. Dispatch a reviewer subagent: the diff and the evaluation live in its context, and only the findings come back to you. |
-| "The reviewer needs my whole session history to understand the change" | Hand it precisely crafted context, never your session's history. That keeps the reviewer on the work product, not your thought process. |
-
-## Red Flags
-
-**Never:**
-- Skip review because "it's simple"
-- Ignore Critical issues
-- Proceed with unfixed Important issues
-- Argue with valid technical feedback
-
-**If reviewer wrong:**
-- Push back with technical reasoning
-- Show code/tests that prove it works
-- Request clarification
-
-See template at: [code-reviewer.md](code-reviewer.md)
+| "I'll review the diff myself — I have the context for it" | Having the context is the problem: you already concluded this code is correct. Dispatch a reader who hasn't. |
+| "The reviewer needs my session history to understand the change" | Hand it the requirements and the diff. Your thought process is what you want it not to inherit. |
+| "It's simple, skip the review" | Task gates, features, and pre-merge get a review regardless. Size decides the reviewer's scope, not whether one happens. |
+| "I'll tell the reviewer that finding would be a false positive" | That is pre-judging. Let it raise the finding and adjudicate afterward. |

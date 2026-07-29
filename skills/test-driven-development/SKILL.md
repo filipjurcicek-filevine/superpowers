@@ -9,40 +9,27 @@ description: Use when implementing any feature or bugfix, before writing impleme
 
 Write the test first. Watch it fail. Write minimal code to pass.
 
-**Core principle:** If you didn't watch the test fail, you don't know if it tests the right thing.
+**Core principle:** if you didn't watch the test fail, you don't know if it
+tests the right thing.
 
-**Violating the letter of the rules is violating the spirit of the rules.**
+## The Cycle Contract
 
-## When to Use
+Every piece of production code ships with this evidence trail, in this order:
 
-**Always:**
-- New features
-- Bug fixes
-- Refactoring
-- Behavior changes
+1. **A test written before the code**, naming one behavior.
+2. **A recorded run where that test failed** — and failed because the behavior
+   is missing, not because of a typo, a missing import, or a syntax error.
+3. **The minimal code that makes it pass.**
+4. **A recorded run where it passes**, with the rest of the suite green and the
+   output pristine.
 
-**Exceptions (ask your human partner):**
-- Throwaway prototypes
-- Generated code
-- Configuration files
+Code without that trail is not TDD-complete, whatever else is true about it.
+When you already wrote the code first, delete it and rebuild it from the tests —
+keeping it as reference means adapting it, which produces step 3 without steps 1
+and 2.
 
-Thinking "skip TDD just this once"? Stop. That's rationalization.
-
-## The Iron Law
-
-```
-NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
-```
-
-Write code before the test? Delete it. Start over.
-
-**No exceptions:**
-- Don't keep it as "reference"
-- Don't "adapt" it while writing tests
-- Don't look at it
-- Delete means delete
-
-Implement fresh from tests. Period.
+**Exceptions, with the user's agreement:** throwaway prototypes, generated code,
+configuration files.
 
 ## Red-Green-Refactor
 
@@ -68,9 +55,9 @@ digraph tdd_cycle {
 }
 ```
 
-### RED - Write Failing Test
+### RED — write the failing test
 
-Write one minimal test showing what should happen.
+One minimal test showing what should happen.
 
 <Good>
 ```typescript
@@ -105,31 +92,23 @@ test('retry works', async () => {
 Vague name, tests mock not code
 </Bad>
 
-**Requirements:**
-- One behavior
-- Clear name
-- Real code (no mocks unless unavoidable)
+**Requirements:** one behavior, clear name, real code (no mocks unless unavoidable).
 
-### Verify RED - Watch It Fail
-
-**MANDATORY. Never skip.**
+### Verify RED — watch it fail
 
 ```bash
 npm test path/to/test.test.ts
 ```
 
-Confirm:
-- Test fails (not errors)
-- Failure message is expected
-- Fails because feature missing (not typos)
+The run must show: the test fails (not errors), the failure message is the one
+you expected, and it fails because the feature is missing.
 
-**Test passes?** You're testing existing behavior. Fix test.
+- **Test passes?** You're testing behavior that already exists. Fix the test.
+- **Test errors?** Fix the error and re-run until it fails correctly.
 
-**Test errors?** Fix error, re-run until it fails correctly.
+### GREEN — minimal code
 
-### GREEN - Minimal Code
-
-Write simplest code to pass the test.
+Simplest code that passes.
 
 <Good>
 ```typescript
@@ -163,37 +142,24 @@ async function retryOperation<T>(
 Over-engineered
 </Bad>
 
-Don't add features, refactor other code, or "improve" beyond the test.
+Don't add features, refactor other code, or improve beyond the test.
 
-### Verify GREEN - Watch It Pass
-
-**MANDATORY.**
+### Verify GREEN — watch it pass
 
 ```bash
 npm test path/to/test.test.ts
 ```
 
-Confirm:
-- Test passes
-- Other tests still pass
-- Output pristine (no errors, warnings)
+The run must show the test passing, the other tests still passing, and pristine
+output — no errors, no warnings.
 
-**Test fails?** Fix code, not test.
+- **Test fails?** Fix the code, not the test.
+- **Other tests fail?** Fix them now.
 
-**Other tests fail?** Fix now.
+### REFACTOR — clean up
 
-### REFACTOR - Clean Up
-
-After green only:
-- Remove duplication
-- Improve names
-- Extract helpers
-
-Keep tests green. Don't add behavior.
-
-### Repeat
-
-Next failing test for next feature.
+After green only: remove duplication, improve names, extract helpers. Keep tests
+green. Don't add behavior.
 
 ## Good Tests
 
@@ -203,7 +169,9 @@ Next failing test for next feature.
 | **Clear** | Name describes behavior | `test('test1')` |
 | **Shows intent** | Demonstrates desired API | Obscures what code should do |
 
-When writing or changing any test, read [writing-good-tests.md](writing-good-tests.md) for the rules that keep tests honest:
+When writing or changing any test, read [writing-good-tests.md](writing-good-tests.md)
+for the rules that keep tests honest:
+
 - Name the production change that would make the test fail — before writing it
 - Assert on real behavior, never on mock behavior
 - Keep test-only code in test utilities, out of production classes
@@ -213,39 +181,14 @@ When writing or changing any test, read [writing-good-tests.md](writing-good-tes
 
 | Excuse | Reality |
 |--------|---------|
-| "Too simple to test" | Simple code breaks. Test takes 30 seconds. |
-| "I'll test after" | Tests written after pass immediately — which proves nothing. They may test the wrong thing, test the implementation instead of the behavior, or miss the edge case you forgot. You never watched it fail, so you never proved it can catch the bug. Test-first forces that failure. |
-| "Tests after achieve same goals (spirit not ritual)" | Tests-after answer "what does this do?"; tests-first answer "what should this do?" Tests written after are biased by the code you already wrote — you verify the cases you remembered, not the ones you'd have discovered. Coverage without proof the tests work. |
-| "Already manually tested" | Manual testing is ad-hoc: no record of what you covered, no way to re-run it when the code changes, easy to forget cases under pressure. "Worked when I tried it" ≠ comprehensive. Automated tests run the same way every time. |
-| "Deleting X hours is wasteful" | Sunk cost fallacy — that time is already spent either way. The real choice: rewrite with TDD (high confidence) vs. keep it and bolt tests on after (low confidence, likely bugs). Keeping code you can't trust is the waste. |
-| "Keep as reference, write tests first" | You'll adapt it. That's testing after. Delete means delete. |
-| "Need to explore first" | Fine. Throw away exploration, start with TDD. |
-| "Test hard = design unclear" | Listen to test. Hard to test = hard to use. |
-| "TDD will slow me down" | TDD IS the pragmatic path: catches bugs before commit, prevents regressions, lets you refactor without fear. "Pragmatic" shortcuts mean debugging in production — slower, not faster. |
-| "Manual test faster" | Manual doesn't prove edge cases. You'll re-test every change. |
-| "Existing code has no tests" | You're improving it. Add tests for existing code. |
-
-## Red Flags - STOP and Start Over
-
-- Code before test
-- Test after implementation
-- Test passes immediately
-- Can't explain why test failed
-- Tests added "later"
-- Rationalizing "just this once"
-- "I already manually tested it"
-- "Tests after achieve the same purpose"
-- "It's about spirit not ritual"
-- "Keep as reference" or "adapt existing code"
-- "Already spent X hours, deleting is wasteful"
-- "TDD is dogmatic, I'm being pragmatic"
-- "This is different because..."
-
-**All of these mean: Delete code. Start over with TDD.**
+| "I'll test after" | Tests written after pass immediately — which proves nothing. They may test the wrong thing, test the implementation instead of the behavior, or miss the edge case you forgot. You never watched it fail, so you never proved it can catch the bug. |
+| "Already manually tested it" | Manual testing leaves no record of what was covered and no way to re-run it. "Worked when I tried it" ≠ comprehensive. |
+| "Deleting X hours of work is wasteful" | That time is spent either way. The real choice is rebuilding with TDD (high confidence) or bolting tests onto code you can't trust (low confidence, likely bugs). |
+| "Too simple to test" | Simple code breaks. The test takes 30 seconds. |
 
 ## Example: Bug Fix
 
-**Bug:** Empty email accepted
+**Bug:** empty email accepted
 
 **RED**
 ```typescript
@@ -277,44 +220,28 @@ $ npm test
 PASS
 ```
 
-**REFACTOR**
-Extract validation for multiple fields if needed.
+**REFACTOR** — extract validation if multiple fields need it.
 
-## Verification Checklist
-
-Before marking work complete:
+## Completion Checklist
 
 - [ ] Every new function/method has a test
 - [ ] Watched each test fail before implementing
-- [ ] Each test failed for expected reason (feature missing, not typo)
+- [ ] Each test failed for the expected reason (feature missing, not typo)
 - [ ] Wrote minimal code to pass each test
-- [ ] All tests pass
-- [ ] Output pristine (no errors, warnings)
+- [ ] All tests pass, output pristine
 - [ ] Tests use real code (mocks only if unavoidable)
 - [ ] Edge cases and errors covered
-
-Can't check all boxes? You skipped TDD. Start over.
 
 ## When Stuck
 
 | Problem | Solution |
 |---------|----------|
-| Don't know how to test | Write wished-for API. Write assertion first. Ask your human partner. |
-| Test too complicated | Design too complicated. Simplify interface. |
+| Don't know how to test | Write the wished-for API. Write the assertion first. Ask the user. |
+| Test too complicated | Design too complicated. Simplify the interface. |
 | Must mock everything | Code too coupled. Use dependency injection. |
-| Test setup huge | Extract helpers. Still complex? Simplify design. |
+| Test setup huge | Extract helpers. Still complex? Simplify the design. |
 
 ## Debugging Integration
 
-Bug found? Write failing test reproducing it. Follow TDD cycle. Test proves fix and prevents regression.
-
-Never fix bugs without a test.
-
-## Final Rule
-
-```
-Production code → test exists and failed first
-Otherwise → not TDD
-```
-
-No exceptions without your human partner's permission.
+Bug found? Write the failing test that reproduces it, then follow the cycle. The
+test proves the fix and prevents the regression. Never fix a bug without one.

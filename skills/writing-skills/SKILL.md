@@ -9,7 +9,8 @@ description: Use when creating new skills, editing existing skills, or verifying
 
 **Writing skills IS Test-Driven Development applied to process documentation.**
 
-**Personal skills live in your runtime's skills directory** (`~/.claude/skills/` on Claude Code) — see [codex-tools.md](../using-superpowers/references/codex-tools.md) or [gemini-tools.md](../using-superpowers/references/gemini-tools.md) for the path on those runtimes. Codex, Copilot CLI, and Gemini CLI all also recognize `~/.agents/skills/` as a cross-runtime alias.
+**Personal skills live in `~/.claude/skills/`.** Project skills live in
+`.claude/skills/`; plugin skills live in the plugin's `skills/` directory.
 
 You write test cases (pressure scenarios with subagents), watch them fail (baseline behavior), write the skill (documentation), watch tests pass (agents comply), and refactor (close loopholes).
 
@@ -151,9 +152,12 @@ Concrete results
 
 The description should ONLY describe triggering conditions. Do NOT summarize the skill's process or workflow in the description.
 
-**Why this matters:** Testing revealed that when a description summarizes the skill's workflow, an agent may follow the description instead of reading the full skill content. A description saying "code review between tasks" caused an agent to do ONE review, even though the skill's flowchart clearly showed TWO reviews (spec compliance then code quality).
-
-When the description was changed to just "Use when executing implementation plans with independent tasks" (no workflow summary), the agent correctly read the flowchart and followed the two-stage review process.
+**Why this matters:** when a description summarizes the workflow, agents follow
+the summary instead of reading the skill. In testing, a description saying "code
+review between tasks" produced exactly one review per task — the skill body
+specified two distinct verdicts, and the agent never got there. Changing the
+description to triggering conditions only ("Use when executing implementation
+plans with independent tasks") produced both verdicts.
 
 **The trap:** Descriptions that summarize workflow create a shortcut agents will take. The skill body becomes documentation agents skip.
 
@@ -210,60 +214,47 @@ Use words an agent would search for:
 - ✅ `creating-skills` not `skill-creation`
 - ✅ `condition-based-waiting` not `async-test-helpers`
 
-### 4. Token Efficiency (Critical)
+### 4. Progressive Disclosure
 
-**Problem:** getting-started and frequently-referenced skills load into EVERY conversation. Every token counts.
+Three tiers load at different times. Write for the tier.
 
-**Target word counts:**
-- getting-started workflows: <150 words each
-- Frequently-loaded skills: <200 words total
-- Other skills: <500 words (still be concise)
+| Tier | Loads | Budget |
+|------|-------|--------|
+| `description` | Always, for every skill installed | One sentence of triggers |
+| Session bootstrap (e.g. using-superpowers) | Every conversation | Under ~200 words |
+| `SKILL.md` | When the skill is invoked | Aim under ~500 words of instruction; more only if every line is load-bearing |
+| Reference files | Only when the skill says to read them | As long as the material needs |
 
-**Techniques:**
+**Instruction density beats brevity.** A long SKILL.md is not the failure mode —
+a *repetitive* one is. Stating the same rule as a principle, then a prohibition
+list, then a rationalization table, then a red-flags list teaches the reader that
+this document restates itself, and they start skimming the parts that matter. Say
+each thing once, in the form that fits its failure (see Match the Form to the
+Failure).
 
-**Move details to tool help:**
+**Move depth out, not away:**
+
 ```bash
-# ❌ BAD: Document all flags in SKILL.md
+# ❌ Document every flag in SKILL.md
 search-conversations supports --text, --both, --after DATE, --before DATE, --limit N
 
-# ✅ GOOD: Reference --help
+# ✅ Point at the source of truth
 search-conversations supports multiple modes and filters. Run --help for details.
 ```
 
-**Use cross-references:**
-```markdown
-# ❌ BAD: Repeat workflow details
-When searching, dispatch subagent with template...
-[20 lines of repeated instructions]
+Cross-reference rather than restate: `**REQUIRED SUB-SKILL:** Use superpowers:test-driven-development`
+instead of paraphrasing that skill's workflow. A paraphrase drifts from the
+original and becomes a second, wrong copy.
 
-# ✅ GOOD: Reference other skill
-Always use subagents (50-100x context savings). REQUIRED: Use [other-skill-name] for workflow.
-```
-
-**Compress examples:**
-```markdown
-# ❌ BAD: Verbose example (42 words)
-your human partner: "How did we handle authentication errors in React Router before?"
-You: I'll search past conversations for React Router authentication patterns.
-[Dispatch subagent with search query: "React Router authentication error handling 401"]
-
-# ✅ GOOD: Minimal example (20 words)
-Partner: "How did we handle auth errors in React Router?"
-You: Searching...
-[Dispatch subagent → synthesis]
-```
-
-**Eliminate redundancy:**
-- Don't repeat what's in cross-referenced skills
-- Don't explain what's obvious from command
-- Don't include multiple examples of same pattern
+**One example per pattern.** A second example of the same idea costs tokens and
+teaches nothing new.
 
 **Verification:**
 ```bash
 wc -w skills/path/SKILL.md
-# getting-started workflows: aim for <150 each
-# Other frequently-loaded: aim for <200 total
 ```
+Then read it: could a reader who follows only the headings do the right thing? Is
+any rule stated more than once?
 
 **Name by what you DO or core insight:**
 - ✅ `condition-based-waiting` > `async-test-helpers`
@@ -315,7 +306,7 @@ digraph when_flowchart {
 
 See `graphviz-conventions.dot` in this directory for graphviz style rules.
 
-**Visualizing for your human partner:** Use `render-graphs.js` in this directory to render a skill's flowcharts to SVG:
+**Visualizing for the user:** Use `render-graphs.js` in this directory to render a skill's flowcharts to SVG:
 ```bash
 ./render-graphs.js ../some-skill           # Each diagram separately
 ./render-graphs.js ../some-skill --combine # All diagrams in one SVG
@@ -377,18 +368,9 @@ When: Reference material too large for inline
 NO SKILL WITHOUT A FAILING TEST FIRST
 ```
 
-This applies to NEW skills AND EDITS to existing skills.
-
-Write skill before testing? Delete it. Start over.
-Edit skill without testing? Same violation.
-
-**No exceptions:**
-- Not for "simple additions"
-- Not for "just adding a section"
-- Not for "documentation updates"
-- Don't keep untested changes as "reference"
-- Don't "adapt" while running tests
-- Delete means delete
+This applies to new skills and to edits — including edits that only add a
+section. A skill is behavior-shaping code, and an untested edit to a tuned skill
+can move compliance in either direction without anyone noticing which.
 
 **REQUIRED BACKGROUND:** The superpowers:test-driven-development skill explains why this matters. Same principles apply to documentation.
 
@@ -445,24 +427,20 @@ Different skill types need different test approaches:
 
 | Excuse | Reality |
 |--------|---------|
-| "Skill is obviously clear" | Clear to you ≠ clear to other agents. Test it. |
-| "It's just a reference" | References can have gaps, unclear sections. Test retrieval. |
-| "Testing is overkill" | Untested skills have issues. Always. 15 min testing saves hours. |
-| "I'll test if problems emerge" | Problems = agents can't use skill. Test BEFORE deploying. |
-| "Too tedious to test" | Testing is less tedious than debugging bad skill in production. |
-| "I'm confident it's good" | Overconfidence guarantees issues. Test anyway. |
-| "Academic review is enough" | Reading ≠ using. Test application scenarios. |
-| "No time to test" | Deploying untested skill wastes more time fixing it later. |
-
-**All of these mean: Test before deploying. No exceptions.**
+| "The skill is obviously clear" | Clear to the author is the one case that proves nothing. Clarity is what the test measures. |
+| "Academic review is enough" | Reading the skill and using it are different tasks. Test the application scenario. |
+| "It's just a reference" | References have gaps and dead ends. Test retrieval: can an agent find the right section and use it? |
+| "I'll test if problems emerge" | The problem emerging *is* an agent failing to use the skill, in someone's real session. |
 
 ## Match the Form to the Failure
 
-Before writing guidance, classify the baseline failure. The form that bulletproofs one failure type measurably backfires on another.
+**This is the first decision, before you write a line of guidance.** Classify the
+baseline failure, then pick the form that fits it. The form that bulletproofs one
+failure type measurably backfires on another, so guessing costs you the skill.
 
 | Baseline failure | Right form | Wrong form |
 |---|---|---|
-| Skips/violates a rule under pressure (knows better, does it anyway) | Prohibition + rationalization table + red flags (see Bulletproofing below) | Soft guidance ("prefer...", "consider...") |
+| Skips/violates a rule under pressure (knows better, does it anyway) | Prohibition + one rationalization table (see Bulletproofing below) | Soft guidance ("prefer...", "consider...") |
 | Complies, but output has the wrong shape (bloated prompt, buried verdict, restated spec) | Positive recipe or contract: state what the output IS — its parts, in order | Prohibition list ("don't restate", "never narrate") |
 | Omits a required element from something they already produce | Structural: REQUIRED field or slot in the template they fill in | Prose reminders near the template |
 | Behavior should depend on a condition | Conditional keyed to an observable predicate ("if the brief exists, reference it") | Unconditional rule + exemption clauses |
@@ -472,18 +450,25 @@ Before writing guidance, classify the baseline failure. The form that bulletproo
 **Rules for whichever form you pick:**
 - **No nuance clauses.** "Don't X unless it matters" reopens the negotiation — appending a single nuance clause to a winning recipe degraded it from consistent to noisy in the same wording tests. Express a real exception as its own conditional on an observable predicate.
 - **Exemption clauses don't scope.** "This limit doesn't apply to code blocks" still suppresses code blocks. If part of the output must be exempt, restructure so the rule can't reach it.
+- **Structure beats instruction where structure is available.** A reviewer with no
+  file-editing tools cannot edit files; a required field in a template gets filled
+  in. Prefer a constraint the agent cannot negotiate with over a sentence telling
+  it not to.
 
 ## Bulletproofing Skills Against Rationalization
 
-Skills that enforce discipline (like TDD) need to resist rationalization. Agents are smart and will find loopholes when under pressure.
+**Scope:** discipline failures only — an agent that knows the rule and skips it
+under pressure. For wrong-shaped output or omitted elements, this toolkit
+backfires; use the forms above.
 
-**Scope:** this toolkit is for discipline failures — an agent that knows the rule and skips it under pressure. For wrong-shaped output or omitted elements, prohibition-based bulletproofing backfires; use the forms in Match the Form to the Failure instead.
+**Psychology note:** see persuasion-principles.md for the research foundation
+(Cialdini, 2021; Meincke et al., 2025) on authority, commitment, scarcity, social
+proof, and unity.
 
-**Psychology note:** Understanding WHY persuasion techniques work helps you apply them systematically. See persuasion-principles.md for research foundation (Cialdini, 2021; Meincke et al., 2025) on authority, commitment, scarcity, social proof, and unity principles.
+### State the rule once, in the form that closes the workaround
 
-### Close Every Loophole Explicitly
-
-Don't just state the rule - forbid specific workarounds:
+A bare rule leaves the workaround open; the fix is to name the workaround in the
+rule, not to restate the rule elsewhere.
 
 <Bad>
 ```markdown
@@ -493,61 +478,40 @@ Write code before test? Delete it.
 
 <Good>
 ```markdown
-Write code before test? Delete it. Start over.
-
-**No exceptions:**
-- Don't keep it as "reference"
-- Don't "adapt" it while writing tests
-- Don't look at it
-- Delete means delete
+When you already wrote the code first, delete it and rebuild from the tests —
+keeping it as reference means adapting it, which produces the implementation
+without the failing test.
 ```
 </Good>
 
-### Address "Spirit vs Letter" Arguments
+The good version carries the reason the workaround fails. That travels; a
+prohibition list does not.
 
-Add foundational principle early:
+### One rationalization table, from real baselines
 
-```markdown
-**Violating the letter of the rules is violating the spirit of the rules.**
-```
-
-This cuts off entire class of "I'm following the spirit" rationalizations.
-
-### Build Rationalization Table
-
-Capture rationalizations from baseline testing (see Testing section below). Every excuse agents make goes in the table:
+Capture the excuses agents actually produced in baseline testing (see the Testing
+section) and put them in exactly one table. Cap it at the ones you observed —
+invented excuses dilute the observed ones.
 
 ```markdown
 | Excuse | Reality |
 |--------|---------|
-| "Too simple to test" | Simple code breaks. Test takes 30 seconds. |
-| "I'll test after" | Tests passing immediately prove nothing. |
-| "Tests after achieve same goals" | Tests-after = "what does this do?" Tests-first = "what should this do?" |
+| "I'll test after" | Tests written after pass immediately — which proves nothing. You never watched it fail, so you never proved it can catch the bug. |
+| "Already manually tested it" | Manual testing leaves no record and no way to re-run it. |
 ```
 
-### Create Red Flags List
+**Do not also write a Red Flags list of the same items.** A rationalization table
+and a red-flags list restating it are the same content twice; the second copy
+teaches the reader to skim. Keep a short Red Flags list only when it names
+*different* signals — observable states rather than thoughts ("three fixes have
+failed", "the diff has no test file").
 
-Make it easy for agents to self-check when rationalizing:
+### Skip the spirit-versus-letter preamble
 
-```markdown
-## Red Flags - STOP and Start Over
-
-- Code before test
-- "I already manually tested it"
-- "Tests after achieve the same purpose"
-- "It's about spirit not ritual"
-- "This is different because..."
-
-**All of these mean: Delete code. Start over with TDD.**
-```
-
-### Update SDO for Violation Symptoms
-
-Add to description: symptoms of when you're ABOUT to violate the rule:
-
-```yaml
-description: use when implementing any feature or bugfix, before writing implementation code
-```
+"Violating the letter is violating the spirit" was written for models that argued
+the distinction. If a baseline run shows that argument, add the counter to the
+rationalization table with the specific loophole it opened. Don't add it
+preemptively.
 
 ## RED-GREEN-REFACTOR for Skills
 
@@ -611,18 +575,12 @@ step2 [label="read file"];
 helper1, helper2, step3, pattern4
 **Why bad:** Labels should have semantic meaning
 
-## STOP: Before Moving to Next Skill
+## One Skill at a Time
 
-**After writing ANY skill, you MUST STOP and complete the deployment process.**
-
-**Do NOT:**
-- Create multiple skills in batch without testing each
-- Move to next skill before current one is verified
-- Skip testing because "batching is more efficient"
-
-**The deployment checklist below is MANDATORY for EACH skill.**
-
-Deploying untested skills = deploying untested code. It's a violation of quality standards.
+Finish the checklist below for the current skill — including its tests — before
+starting the next one. Batching several skills and testing at the end means every
+later skill inherits whatever the first one got wrong, and you find out about all
+of them at once.
 
 ## Skill Creation Checklist (TDD Adapted)
 
@@ -649,16 +607,15 @@ Deploying untested skills = deploying untested code. It's a violation of quality
 
 **REFACTOR Phase - Close Loopholes:**
 - [ ] Identify NEW rationalizations from testing
-- [ ] Add explicit counters (if discipline skill)
-- [ ] Build rationalization table from all test iterations
-- [ ] Create red flags list
-- [ ] Re-test until bulletproof
+- [ ] Close each one in the rule itself, or in the single rationalization table
+- [ ] Re-test until compliance holds under the pressures you can construct
 
 **Quality Checks:**
-- [ ] Small flowchart only if decision non-obvious
+- [ ] Small flowchart only if the decision is non-obvious or the loop has cycles prose can't carry
 - [ ] Quick reference table
 - [ ] Common mistakes section
 - [ ] No narrative storytelling
+- [ ] No rule stated in more than one place
 - [ ] Supporting files only for tools or heavy reference
 
 **Deployment:**

@@ -7,9 +7,8 @@ description: Use when encountering any bug, test failure, or unexpected behavior
 
 ## Overview
 
-**Core principle:** ALWAYS find root cause before attempting fixes. Symptom fixes are failure.
-
-**Violating the letter of this process is violating the spirit of debugging.**
+**Core principle:** find the root cause before attempting a fix. A fix that
+addresses a symptom leaves the bug in place and adds code that hides it.
 
 ## The Iron Law
 
@@ -17,29 +16,18 @@ description: Use when encountering any bug, test failure, or unexpected behavior
 NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
 ```
 
-If you haven't completed Phase 1, you cannot propose fixes.
+Phase 1 comes before any proposed fix — including the one that looks obvious.
 
 ## When to Use
 
-Use for ANY technical issue:
-- Test failures
-- Bugs in production
-- Unexpected behavior
-- Performance problems
-- Build failures
-- Integration issues
+Any technical issue: test failures, production bugs, unexpected behavior,
+performance problems, build failures, integration issues.
 
-**Use this ESPECIALLY when:**
-- Under time pressure (emergencies make guessing tempting)
-- "Just one quick fix" seems obvious
-- You've already tried multiple fixes
-- Previous fix didn't work
-- You don't fully understand the issue
-
-**Don't skip when:**
-- Issue seems simple (simple bugs have root causes too)
-- You're in a hurry (rushing guarantees rework)
-- Manager wants it fixed NOW (systematic is faster than thrashing)
+The cases that most need it are the ones that least invite it — time pressure, an
+obvious-looking one-line fix, a simple-seeming issue, or a previous fix that
+didn't hold. Systematic debugging is faster than guess-and-check on every one of
+them, because guessing costs a full cycle per guess and teaches you nothing when
+it fails.
 
 ## The Four Phases
 
@@ -207,52 +195,42 @@ You MUST complete each phase before proceeding to the next.
    - Are we "sticking with it through sheer inertia"?
    - Should we refactor architecture vs. continue fixing symptoms?
 
-   **Discuss with your human partner before attempting more fixes**
+   **Discuss with the user before attempting more fixes**
 
    This is NOT a failed hypothesis - this is a wrong architecture.
 
-## Red Flags - STOP and Follow Process
+## Red Flags — Observable States
 
-If you catch yourself thinking:
-- "Quick fix for now, investigate later"
-- "Just try changing X and see if it works"
-- "Add multiple changes, run tests"
-- "Skip the test, I'll manually verify"
-- "It's probably X, let me fix that"
-- "I don't fully understand but this might work"
-- "Pattern says X but I'll adapt it differently"
-- "Here are the main problems: [lists fixes without investigation]"
-- Proposing solutions before tracing data flow
-- **"One more fix attempt" (when already tried 2+)**
-- **Each fix reveals new problem in different place**
+These are states of the work, not thoughts. Any of them means returning to
+Phase 1:
 
-**ALL of these mean: STOP. Return to Phase 1.**
+- A fix is about to go in without a named root cause
+- More than one change is in flight at once, so a green run won't say which worked
+- The fix has no failing test that reproduced the bug first
+- Two or more fixes have already failed
+- Each fix reveals a new problem somewhere else — at 3+, question the architecture
+  (Phase 4.5)
+- The reference implementation was skimmed rather than read
 
-**If 3+ fixes failed:** Question the architecture (see Phase 4.5)
+## Signals From the User That You're Off Track
 
-## your human partner's Signals You're Doing It Wrong
+- "Is that not happening?" — you assumed without verifying
+- "Will it show us...?" — you should have added evidence gathering
+- "Stop guessing" — you're proposing fixes without understanding
+- "Ultra-think this" — question fundamentals, not just symptoms
+- "We're stuck?" (frustrated) — your approach isn't working
 
-**Watch for these redirections:**
-- "Is that not happening?" - You assumed without verifying
-- "Will it show us...?" - You should have added evidence gathering
-- "Stop guessing" - You're proposing fixes without understanding
-- "Ultra-think this" - Question fundamentals, not just symptoms
-- "We're stuck?" (frustrated) - Your approach isn't working
-
-**When you see these:** STOP. Return to Phase 1.
+Any of these: stop and return to Phase 1.
 
 ## Common Rationalizations
 
 | Excuse | Reality |
 |--------|---------|
-| "Issue is simple, don't need process" | Simple issues have root causes too. Process is fast for simple bugs. |
-| "Emergency, no time for process" | Systematic debugging is FASTER than guess-and-check thrashing. |
-| "Just try this first, then investigate" | First fix sets the pattern. Do it right from the start. |
-| "I'll write test after confirming fix works" | Untested fixes don't stick. Test first proves it. |
-| "Multiple fixes at once saves time" | Can't isolate what worked. Causes new bugs. |
-| "Reference too long, I'll adapt the pattern" | Partial understanding guarantees bugs. Read it completely. |
-| "I see the problem, let me fix it" | Seeing symptoms ≠ understanding root cause. |
-| "One more fix attempt" (after 2+ failures) | 3+ failures = architectural problem. Question pattern, don't fix again. |
+| "I see the problem, let me fix it" | Seeing the symptom is not understanding the cause. Trace it to the source first. |
+| "Multiple fixes at once saves time" | A green run afterward tells you nothing about which change mattered, and the extra ones stay in the codebase. |
+| "Emergency, no time for the process" | Guess-and-check costs a full cycle per guess and produces no knowledge when it fails. The process is the fast path. |
+| "The reference is long, I'll adapt the pattern" | Partial understanding of a pattern is how you get code that looks right and isn't. Read it completely. |
+| "One more fix attempt" (after 2+ failures) | Three failures is a signal about the architecture, not about the fix. Question the pattern. |
 
 ## Quick Reference
 

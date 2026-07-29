@@ -1,64 +1,70 @@
 ---
 name: executing-plans
-description: Use when you have a written implementation plan to execute in a separate session with review checkpoints
+description: Use when executing an implementation plan inline in this session, rather than dispatching a subagent per task
 ---
 
-# Executing Plans
+# Executing Plans Inline
 
 ## Overview
 
-Load plan, review critically, execute all tasks, report when complete.
+Execute a plan yourself, task by task, in this session.
 
 **Announce at start:** "I'm using the executing-plans skill to implement this plan."
 
-**Note:** Tell your human partner that Superpowers works much better with access to subagents (Claude Code, Codex CLI, Codex App, Copilot CLI, and Gemini CLI all qualify; see the per-platform tool refs in `../using-superpowers/references/`). If subagents are available, use superpowers:subagent-driven-development instead of this skill.
+## When This Is the Right Route
+
+Inline execution is the deliberate choice when:
+
+- **The tasks are tightly coupled** — each one depends on the shape of the last,
+  so a fresh subagent per task would spend its context rediscovering what you
+  already know.
+- **The user wants to watch and steer** — they asked to see each step, or the work
+  is exploratory enough that direction may change mid-plan.
+
+Otherwise use superpowers:subagent-driven-development: a fresh implementer per
+task, a task review after each, and a broad review at the end catch more than
+inline execution does, because the reviewer has no stake in the code.
 
 ## The Process
 
-### Step 1: Load and Review Plan
-1. Ensure an isolated workspace: use superpowers:using-git-worktrees to create one or verify the existing one
-2. Read plan file
-3. Review critically - identify any questions or concerns about the plan
-4. If concerns: Raise them with your human partner before starting
-5. If no concerns: Create todos for the plan items and proceed
+### Step 1: Load and Review the Plan
+
+1. Ensure an isolated workspace — superpowers:using-git-worktrees.
+2. Read the plan file.
+3. Review it critically: contradictions between tasks, requirements with no task,
+   types or signatures that don't match across tasks, anything the plan mandates
+   that you believe is wrong.
+4. Raise what you found with the user before starting.
+5. Create a todo per task.
 
 ### Step 2: Execute Tasks
 
-For each task:
-1. Mark as in_progress
-2. Follow each step exactly (plan has bite-sized steps)
-3. Run verifications as specified
-4. Mark as completed
+For each task: mark it in progress, follow its steps, run the verifications the
+plan specifies, mark it complete. Use superpowers:test-driven-development for the
+implementation steps.
 
-### Step 3: Complete Development
+Do not batch verification to the end. A plan step that says to run the tests is
+the point at which you run them.
 
-After all tasks complete and verified:
+### Step 3: Complete
+
+After all tasks pass their verifications:
+
 - Announce: "I'm using the finishing-a-development-branch skill to complete this work."
-- **REQUIRED SUB-SKILL:** Use superpowers:finishing-a-development-branch
-- Follow that skill to verify tests, present options, execute choice
+- **REQUIRED SUB-SKILL:** superpowers:finishing-a-development-branch
 
-## When to Stop and Ask for Help
+## When to Stop and Ask
 
-**STOP executing immediately when:**
-- Hit a blocker (missing dependency, test fails, instruction unclear)
-- Plan has critical gaps preventing starting
-- You don't understand an instruction
-- Verification fails repeatedly
+Stop when you hit a blocker (missing dependency, failing test you can't explain,
+an instruction you don't understand), when the plan has a gap that prevents
+starting, or when verification keeps failing. Ask rather than guessing.
 
-**Ask for clarification rather than guessing.**
-
-## When to Revisit Earlier Steps
-
-**Return to Review (Step 1) when:**
-- Partner updates the plan based on your feedback
-- Fundamental approach needs rethinking
-
-**Don't force through blockers** - stop and ask.
+Return to Step 1 when the user updates the plan, or when the approach needs
+rethinking rather than the next step.
 
 ## Remember
-- Review plan critically first
-- Follow plan steps exactly
-- Don't skip verifications
-- Reference skills when plan says to
-- Stop when blocked, don't guess
-- Never start implementation on main/master branch without explicit user consent
+
+- Review the plan critically before starting, not after it goes wrong
+- Follow the plan's steps; run its verifications where it says to
+- Invoke the skills the plan names
+- Never start implementation on main/master without the user's explicit consent
