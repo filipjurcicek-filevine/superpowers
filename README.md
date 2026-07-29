@@ -30,7 +30,7 @@ Superpowers is a complete software development methodology for your coding agent
 ```bash
 git clone https://github.com/filipjurcicek-filevine/superpowers.git ~/Projects/superpowers
 claude plugin marketplace add ~/Projects/superpowers
-claude plugin install superpowers@superpowers-dev
+claude plugin install superpowers@superpowers-cc
 ```
 
 Restart Claude Code — CLI or VS Code extension, same install. Full detail,
@@ -81,10 +81,10 @@ git submodule add https://github.com/filipjurcicek-filevine/superpowers.git supe
 
 ```bash
 claude plugin marketplace add ~/Projects/superpowers    # or ./superpowers
-claude plugin install superpowers@superpowers-dev
+claude plugin install superpowers@superpowers-cc
 ```
 
-The marketplace name is `superpowers-dev`, from
+The marketplace name is `superpowers-cc`, from
 [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json). Add
 `--scope project` or `--scope local` to `install` to scope it to one repo instead
 of your user account (default is `user`).
@@ -104,7 +104,7 @@ claude plugin uninstall superpowers@claude-plugins-official
 ### Updating after you edit the fork
 
 **Editing the working tree changes nothing on its own.** The plugin runs from a
-version-keyed cache under `~/.claude/plugins/cache/superpowers-dev/`, and
+version-keyed cache under `~/.claude/plugins/cache/superpowers-cc/`, and
 `claude plugin update` compares versions — with the version unchanged it reports
 "already at the latest version" and keeps serving the old copy. Verified: a probe
 line added to a tracked file did not reach the cache until the version moved.
@@ -113,8 +113,8 @@ So bump the version, then update:
 
 ```bash
 scripts/bump-version.sh 6.2.1-cc.2        # writes package.json + both manifests
-claude plugin marketplace update superpowers-dev
-claude plugin update superpowers@superpowers-dev
+claude plugin marketplace update superpowers-cc
+claude plugin update superpowers@superpowers-cc
 # then restart Claude Code
 ```
 
@@ -125,7 +125,7 @@ reports drift; `--audit` greps the repo for stragglers.
 ### Verify what is actually live
 
 ```bash
-claude plugin details superpowers@superpowers-dev
+claude plugin details superpowers@superpowers-cc
 ```
 
 That prints the running version and a component inventory. This fork should show
