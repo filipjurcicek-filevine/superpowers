@@ -5,8 +5,6 @@ description: Use when creating new skills, editing existing skills, or verifying
 
 # Writing Skills
 
-## Overview
-
 **Writing skills IS Test-Driven Development applied to process documentation.**
 
 **Personal skills live in `~/.claude/skills/`.** Project skills live in
@@ -27,23 +25,6 @@ A **skill** is a reference guide for proven techniques, patterns, or tools. Skil
 **Skills are:** Reusable techniques, patterns, tools, reference guides
 
 **Skills are NOT:** Narratives about how you solved a problem once
-
-## TDD Mapping for Skills
-
-| TDD Concept | Skill Creation |
-|-------------|----------------|
-| **Test case** | Pressure scenario with subagent |
-| **Production code** | Skill document (SKILL.md) |
-| **Test fails (RED)** | Agent violates rule without skill (baseline) |
-| **Test passes (GREEN)** | Agent complies with skill present |
-| **Refactor** | Close loopholes while maintaining compliance |
-| **Write test first** | Run baseline scenario BEFORE writing skill |
-| **Watch it fail** | Document exact rationalizations agent uses |
-| **Minimal code** | Write skill addressing those specific violations |
-| **Watch it pass** | Verify agent now complies |
-| **Refactor cycle** | Find new rationalizations → plug → re-verify |
-
-The entire skill creation process follows RED-GREEN-REFACTOR.
 
 ## When to Create a Skill
 
@@ -71,7 +52,6 @@ Way of thinking about problems (flatten-with-flags, test-invariants)
 API docs, syntax guides, tool documentation (office docs)
 
 ## Directory Structure
-
 
 ```
 skills/
@@ -103,40 +83,33 @@ skills/
   - **NEVER summarize the skill's process or workflow** (see SDO section for why)
   - Keep under 500 characters if possible
 
+**Body:** there is no fixed section list. Write the sections this skill's failure
+modes need and nothing else. Only two are load-bearing everywhere:
+
 ```markdown
 ---
-name: Skill-Name-With-Hyphens
+name: skill-name-with-hyphens
 description: Use when [specific triggering conditions and symptoms]
 ---
 
 # Skill Name
 
-## Overview
-What is this? Core principle in 1-2 sentences.
+[Opening: what this is and the core principle, in 1-3 sentences. No `## Overview`
+heading — the reader has already invoked the skill and knows what they opened.]
 
-## When to Use
-[Small inline flowchart IF decision non-obvious]
-
-Bullet list with SYMPTOMS and use cases
-When NOT to use
-
-## Core Pattern (for techniques/patterns)
-Before/after code comparison
-
-## Quick Reference
-Table or bullets for scanning common operations
-
-## Implementation
-Inline code for simple patterns
-Link to file for heavy reference or reusable tools
-
-## Common Mistakes
-What goes wrong + fixes
-
-## Real-World Impact (optional)
-Concrete results
+[Then the sections the failure modes call for. Common, not mandatory:
+ - When to Use / When Not to — only when the routing decision is non-obvious
+ - The procedure, contract, or pattern — the actual instructions
+ - Quick Reference table — only when there are operations worth scanning for
+ - Common Rationalizations — one table, for discipline failures, from observed
+   baselines. See Bulletproofing.]
 ```
 
+**Sections to leave out unless you can name the failure they fix:** `## Overview`
+(the title already says it), Real-World Impact, Advantages, Key Principles,
+Bottom Line, and any closing recap. These were removed library-wide because they
+address a reader deciding *whether* to adopt the skill — and by the time the body
+loads, that decision is already made. Selling costs tokens on every invocation.
 
 ## Skill Discovery Optimization (SDO)
 
@@ -210,20 +183,28 @@ Use words an agent would search for:
 
 ### 3. Descriptive Naming
 
-**Use active voice, verb-first:**
-- ✅ `creating-skills` not `skill-creation`
-- ✅ `condition-based-waiting` not `async-test-helpers`
+Name by the action or the core insight, verb-first and active. Gerunds (`-ing`)
+suit processes: `creating-skills`, `debugging-with-logs`.
+
+- ✅ `condition-based-waiting` > `async-test-helpers`
+- ✅ `root-cause-tracing` > `debugging-techniques`
+- ✅ `flatten-with-flags` > `data-structure-refactoring`
+- ✅ `creating-skills` > `skill-creation`
 
 ### 4. Progressive Disclosure
 
-Three tiers load at different times. Write for the tier.
+Four tiers load at different times. Write for the tier.
 
 | Tier | Loads | Budget |
 |------|-------|--------|
 | `description` | Always, for every skill installed | One sentence of triggers |
-| Session bootstrap (e.g. using-superpowers) | Every conversation | Under ~200 words |
+| Session bootstrap (e.g. using-superpowers) | Every conversation, injected by a SessionStart hook | Under ~200 words |
 | `SKILL.md` | When the skill is invoked | Aim under ~500 words of instruction; more only if every line is load-bearing |
 | Reference files | Only when the skill says to read them | As long as the material needs |
+
+The first two tiers are paid for whether or not the skill is ever used. Get the
+real numbers rather than estimating: `claude plugin details <plugin>` prints
+always-on and on-invoke cost per component.
 
 **Instruction density beats brevity.** A long SKILL.md is not the failure mode —
 a *repetitive* one is. Stating the same rule as a principle, then a prohibition
@@ -246,8 +227,12 @@ Cross-reference rather than restate: `**REQUIRED SUB-SKILL:** Use superpowers:te
 instead of paraphrasing that skill's workflow. A paraphrase drifts from the
 original and becomes a second, wrong copy.
 
-**One example per pattern.** A second example of the same idea costs tokens and
-teaches nothing new.
+**One example per pattern**, in the single most relevant language. A second
+example of the same idea costs tokens and teaches nothing new — and five
+translations of it cost five times that while each gets less review than one
+would have. Choose by domain: testing → TypeScript, system debugging →
+shell/Python, data → Python. You are good at porting; one great example is
+enough.
 
 **Verification:**
 ```bash
@@ -255,16 +240,6 @@ wc -w skills/path/SKILL.md
 ```
 Then read it: could a reader who follows only the headings do the right thing? Is
 any rule stated more than once?
-
-**Name by what you DO or core insight:**
-- ✅ `condition-based-waiting` > `async-test-helpers`
-- ✅ `using-skills` not `skill-usage`
-- ✅ `flatten-with-flags` > `data-structure-refactoring`
-- ✅ `root-cause-tracing` > `debugging-techniques`
-
-**Gerunds (-ing) work well for processes:**
-- `creating-skills`, `testing-skills`, `debugging-with-logs`
-- Active, describes the action you're taking
 
 ### 5. Cross-Referencing Other Skills
 
@@ -314,26 +289,12 @@ See `graphviz-conventions.dot` in this directory for graphviz style rules.
 
 ## Code Examples
 
-**One excellent example beats many mediocre ones**
+How many and which language is decided under Progressive Disclosure. What makes
+the one example good:
 
-Choose most relevant language:
-- Testing techniques → TypeScript/JavaScript
-- System debugging → Shell/Python
-- Data processing → Python
-
-**Good example:**
-- Complete and runnable
-- Well-commented explaining WHY
-- From real scenario
-- Shows pattern clearly
-- Ready to adapt (not generic template)
-
-**Don't:**
-- Implement in 5+ languages
-- Create fill-in-the-blank templates
-- Write contrived examples
-
-You're good at porting - one great example is enough.
+- Complete and runnable, from a real scenario
+- Commented to explain WHY, not what
+- Ready to adapt — not a fill-in-the-blank template with `<YOUR_VALUE_HERE>` slots
 
 ## File Organization
 
@@ -560,10 +521,6 @@ Micro-tests verify wording; they do not replace pressure scenarios for disciplin
 "In session 2025-10-03, we found empty projectDir caused..."
 **Why bad:** Too specific, not reusable
 
-### ❌ Multi-Language Dilution
-example-js.js, example-py.py, example-go.go
-**Why bad:** Mediocre quality, maintenance burden
-
 ### ❌ Code in Flowcharts
 ```dot
 step1 [label="import fs"];
@@ -612,25 +569,13 @@ of them at once.
 
 **Quality Checks:**
 - [ ] Small flowchart only if the decision is non-obvious or the loop has cycles prose can't carry
-- [ ] Quick reference table
-- [ ] Common mistakes section
-- [ ] No narrative storytelling
 - [ ] No rule stated in more than one place
-- [ ] Supporting files only for tools or heavy reference
+- [ ] No section that sells the skill to a reader who has already invoked it
+- [ ] No narrative storytelling
+- [ ] Supporting files only for tools or heavy reference — every one of them referenced from SKILL.md
+- [ ] `claude plugin details <plugin>` re-checked: on-invoke cost is what you intended, and always-on cost moved only if you meant it to
 
 **Deployment:**
-- [ ] Commit skill to git and push to your fork (if configured)
-- [ ] Consider contributing back via PR (if broadly useful)
-
-## Discovery Workflow
-
-How future agents find your skill:
-
-1. **Encounters problem** ("tests are flaky")
-2. **Searches skills** (greps descriptions, browses categories)
-3. **Finds SKILL** (description matches)
-4. **Scans overview** (is this relevant?)
-5. **Reads patterns** (quick reference table)
-6. **Loads example** (only when implementing)
-
-**Optimize for this flow** - put searchable terms early and often.
+- [ ] Bump the plugin version, then commit and push — the plugin serves a
+      version-keyed cache, so an unbumped edit never reaches a running session
+      (see the repo README, "Updating")
