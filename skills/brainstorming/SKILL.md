@@ -109,8 +109,8 @@ designs — build it rather than describing it.
   evolves.
 
 A question about a UI *topic* is not automatically a visual question. "What does
-personality mean here?" is conceptual — ask it in the terminal. "Which of these
-two wizard layouts?" is visual — show it.
+personality mean here?" is conceptual — just ask it. "Which of these two wizard
+layouts?" is visual — show it.
 
 ## After the Design
 

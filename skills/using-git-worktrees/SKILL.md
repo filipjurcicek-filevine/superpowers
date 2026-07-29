@@ -74,6 +74,25 @@ becomes a no-op.
 Use the existing workspace, or pass `path` to switch into another worktree of
 this repository.
 
+### In the IDE, the editor does not follow you
+
+`EnterWorktree` moves the session's working directory. It does not move the
+editor. The VS Code workspace root stays the original checkout, which has two
+consequences worth stating once:
+
+- **File references need the worktree prefix.** A path relative to the worktree
+  root (`src/auth.ts`) resolves against the *workspace* root when the user clicks
+  it, opening the original, unmodified copy. Write
+  `.claude/worktrees/<name>/src/auth.ts` instead — the worktree lives inside the
+  workspace, so that link opens the file you actually changed.
+- **The open file and selection are from the other copy.** IDE context points at
+  the original checkout, not your worktree. Treat it as a pointer to *which* code
+  the user means, never as the current state of the file you are editing — read
+  your own copy before acting on it.
+
+Say which workspace you are in when you report back, so the user knows whether
+their editor is showing your work.
+
 ## Step 2: Project Setup
 
 Auto-detect and run appropriate setup:

@@ -61,9 +61,14 @@ typed findings via `ReportFindings`, use it instead of pasting the report, and
 rank by severity.
 
 In the VS Code extension, write each location as a markdown link rather than bare
-text — `[auth.ts:42](src/auth.ts#L42)`, path relative to the workspace root — so
-the user can jump straight to it. The reviewer reports plain `file:line`;
+text — `[auth.ts:42](src/auth.ts#L42)`, path relative to the **workspace** root —
+so the user can jump straight to it. The reviewer reports plain `file:line`;
 converting it is your job when relaying.
+
+Working in a worktree makes the workspace root and your working directory
+different: prefix the link with the worktree path
+(`[auth.ts:42](.claude/worktrees/retry-fix/src/auth.ts#L42)`), or the link opens
+the original file and the finding looks wrong.
 
 ## Common Rationalizations
 

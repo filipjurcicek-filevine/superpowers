@@ -62,33 +62,33 @@ the local HEAD you were on when you started.
 
 ## Step 4: Present Options
 
-**Normal checkout and named-branch worktree — present exactly these 3 options:**
+Ask with `AskUserQuestion` — one question, `header: "Integration"`. The tool
+renders the options as choices and records which one was picked. A hand-typed
+numbered menu invites a prose reply you then have to interpret, and invites you to
+improvise a different option set.
 
-```
-Implementation complete. What would you like to do?
+**Normal checkout and named-branch worktree — exactly these 3 options:**
 
-1. Merge back to <base-branch> locally
-2. Push and create a Pull Request
-3. Keep the branch as-is (I'll handle it later)
+| Label | Description |
+|-------|-------------|
+| `Merge to <base> locally` | Merge, verify the merged result, then clean up |
+| `Push and open a PR` | Push the branch and open a PR against `<base>` |
+| `Keep the branch as-is` | Leave branch and workspace in place |
 
-Which option?
-```
+**Detached HEAD — exactly these 2 options** (no local merge is possible):
 
-**Detached HEAD — present exactly these 2 options:**
+| Label | Description |
+|-------|-------------|
+| `Push as a new branch and open a PR` | Name the branch on the remote, then open a PR |
+| `Keep as-is` | Leave the workspace in place |
 
-```
-Implementation complete. You're on a detached HEAD (externally managed workspace).
+Question text: "Implementation complete on `<branch>`. How would you like to
+integrate it?" — for a detached HEAD, say so in the question so the missing merge
+option is explained rather than merely absent.
 
-1. Push as new branch and create a Pull Request
-2. Keep as-is (I'll handle it later)
-
-Which option?
-```
-
-Present the menu exactly as written — concise, with every option coming
-from the list above. Discarding the work happens only in response to the
-user explicitly asking for it (see "If the user asks to discard the work"
-below). Wait for their answer; the integration decision is theirs.
+Take every option from the table above and add none of your own. **Discarding is
+not an option in this menu** — it happens only when the user asks for it in so
+many words (see below). Their answer is the decision; wait for it.
 
 ## Step 5: Execute Choice
 
@@ -156,7 +156,9 @@ Report: "Keeping branch <name>. Worktree preserved at <path>."
 ### If the user asks to discard the work
 
 This path exists only as a response to an explicit request to throw the
-work away. Confirm first:
+work away. Confirm first — as plain text, **not** `AskUserQuestion`. A
+single-click button is too cheap for an irreversible deletion; typing the word is
+the point.
 
 ```
 This will permanently delete:

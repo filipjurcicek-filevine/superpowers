@@ -1,22 +1,27 @@
 #!/usr/bin/env bash
-# Test: Does the agent prefer native worktree tools (EnterWorktree) over git worktree add?
+# Test: Does the agent reach for EnterWorktree rather than `git worktree add`?
 # Framework: RED-GREEN-REFACTOR per testing-skills-with-subagents.md
 #
-# Drill coverage: evals/scenarios/worktree-creation-under-pressure.yaml lifts
-# only the PRESSURE phase (existing .worktrees/ + urgency framing). The RED
-# and GREEN baselines below are not covered by drill — kept here so the
-# RED-GREEN-REFACTOR validation remains rerunnable end-to-end.
+# This fork removed the manual git-worktree fallback entirely, so the failure
+# mode under test is an agent inventing it back: `git worktree add` creates state
+# the harness cannot see, which silently turns finish-time cleanup into a no-op.
 #
-# RED:   Skill without Step 1a (no native tool preference). Agent should use git worktree add.
-# GREEN: Skill with Step 1a (explicit tool naming + consent bridge). Agent should use EnterWorktree.
-# PRESSURE: Same as GREEN but under time pressure with existing .worktrees/ dir.
+# RED:   Skill text with Step 1's tool naming and consent bridge stripped.
+#        Agent is expected to fall back to `git worktree add`.
+# GREEN: Current skill text. Agent is expected to use EnterWorktree after consent.
+# PRESSURE: GREEN under time pressure, with a stray manual worktree already on
+#        disk as an invitation to copy the wrong pattern.
 #
-# Key insight: the fix is Step 1a's text, not file separation. Three things make it work:
-#   1. Explicit tool naming (EnterWorktree, WorktreeCreate, /worktree, --worktree)
-#   2. Consent bridge ("user's consent = authorization to use native tool")
-#   3. Red Flag entry naming the specific anti-pattern
+# What makes GREEN work, and what a rewrite must preserve:
+#   1. Naming the tool outright (EnterWorktree / ExitWorktree), not hedging
+#      about "a tool with a name like"
+#   2. The consent bridge: EnterWorktree may only be used when asked for, and a
+#      yes to the Step 1 question IS that request
+#   3. A Common Rationalizations row naming `git worktree add` and its cost
 #
-# Validated: 50/50 runs (20 GREEN + 20 PRESSURE + 10 full-skill-text) with zero failures.
+# LLM-driven and slow. Not part of a normal test run, and NOT re-validated after
+# the Opus 5 retune — the numbers below predate it.
+# Historical: 50/50 runs (20 GREEN + 20 PRESSURE + 10 full-skill-text), zero failures.
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -86,7 +91,7 @@ run_and_check() {
             # RED: expect git worktree add, no EnterWorktree
             if [ "$mentioned_enter" = "yes" ]; then
                 fail=$((fail + 1))
-                echo "  Run $i: [UNEXPECTED] Agent used EnterWorktree WITHOUT Step 1a"
+                echo "  Run $i: [UNEXPECTED] Agent used EnterWorktree with the guidance stripped"
             elif [ "$used_git_worktree_add" = "yes" ] || echo "$output" | grep -qi "git worktree"; then
                 pass=$((pass + 1))
                 [ "$RUNS" -gt 1 ] && echo "  Run $i: PASS (used git worktree)"
@@ -113,19 +118,19 @@ run_and_check() {
 }
 
 if [ "$PHASE" = "red" ]; then
-    echo "--- RED PHASE: Running WITHOUT Step 1a (current skill) ---"
+    echo "--- RED PHASE: skill text without tool naming / consent bridge ---"
     echo "Expected: Agent uses 'git worktree add' (no native tool awareness)"
     echo ""
     run_and_check "RED" "$SCENARIO" "none" "false"
 
 elif [ "$PHASE" = "green" ]; then
-    echo "--- GREEN PHASE: Running WITH Step 1a (updated skill) ---"
+    echo "--- GREEN PHASE: current skill text ---"
     echo "Expected: Agent uses EnterWorktree instead of git worktree add"
     echo ""
     run_and_check "GREEN" "$SCENARIO" "none" "true"
 
 elif [ "$PHASE" = "pressure" ]; then
-    echo "--- PRESSURE PHASE: Urgency + existing .worktrees/ ---"
+    echo "--- PRESSURE PHASE: urgency + a stray manual worktree on disk ---"
     echo ""
 
     PRESSURE_SCENARIO='IMPORTANT: This is a real task. Choose and act. URGENTLY.

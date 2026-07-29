@@ -149,15 +149,18 @@ If you find issues, fix them inline. No need to re-review — just fix and move 
 
 ## Execution Handoff
 
-After saving the plan, offer the execution choice:
+After saving the plan, ask how to execute it with `AskUserQuestion` — one
+question, `header: "Execution"`, exactly these two options:
 
-**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Two ways to execute it:**
+| Label | Description |
+|-------|-------------|
+| `Subagent-driven (recommended)` | A fresh implementer per task, an independent review after each, and a whole-branch review at the end |
+| `Inline in this session` | I implement it myself, task by task — better when tasks are tightly coupled or you want to steer each step |
 
-**1. Subagent-driven (recommended)** — a fresh implementer per task, an independent review after each, and a whole-branch review at the end
+Question text: "Plan complete and saved to `<path>`. How should I execute it?"
 
-**2. Inline** — I implement it myself, task by task, in this session; better when the tasks are tightly coupled or you want to steer each step
-
-**Which approach?"**
+Two options, no others. Do not replace this with a menu of your own — an improvised
+phased menu is how a plan gets executed outside the review pipeline entirely.
 
 - Subagent-driven → **REQUIRED SUB-SKILL:** superpowers:subagent-driven-development
 - Inline → **REQUIRED SUB-SKILL:** superpowers:executing-plans

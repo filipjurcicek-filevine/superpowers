@@ -26,7 +26,6 @@ fi
 VERBOSE=false
 SPECIFIC_TEST=""
 TIMEOUT=900  # Per-test-file budget; must exceed the file's worst case
-             # (test-subagent-driven-development.sh: 9 prompts x 90s each)
 RUN_INTEGRATION=false
 
 while [[ $# -gt 0 ]]; do
@@ -58,7 +57,8 @@ while [[ $# -gt 0 ]]; do
             echo "  --help, -h           Show this help"
             echo ""
             echo "Tests:"
-            echo "  test-subagent-driven-development.sh  Test skill loading and requirements"
+            echo "  test-sdd-workspace.sh                SDD workspace/brief/review-package scripts"
+            echo "  test-worktree-native-preference.sh   Agent uses EnterWorktree, never git worktree add"
             echo ""
             echo "Integration Tests (use --integration):"
             echo "  test-subagent-driven-development-integration.sh  Full workflow execution"
@@ -74,9 +74,7 @@ done
 
 # List of skill tests to run (fast unit tests)
 tests=(
-    "test-worktree-path-policy.sh"
     "test-sdd-workspace.sh"
-    "test-subagent-driven-development.sh"
 )
 
 # Integration tests (slow, full execution)

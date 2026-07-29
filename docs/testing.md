@@ -30,13 +30,20 @@ Slower, LLM-driven suites that are not part of a normal run:
 
 - `tests/claude-code/test-subagent-driven-development-integration.sh` — executes a
   real plan end to end (10-30 minutes, spawns Claude Code sessions).
-- `tests/claude-code/test-subagent-driven-development.sh` — description-recall
-  test.
-- `tests/claude-code/test-worktree-native-preference.sh` — RED/GREEN baselines for
-  the worktree skill.
+- `tests/claude-code/test-worktree-native-preference.sh` — RED/GREEN/PRESSURE
+  baselines for whether the agent reaches for `EnterWorktree` or invents
+  `git worktree add` back. Phases run against different installed skill versions,
+  so the operator switches them; its recorded numbers predate the Opus 5 retune.
 - `tests/explicit-skill-requests/` — multi-turn and skill-name-prompted tests.
 
 Run a suite directly with `bash tests/<dir>/<test>.sh`.
+
+**No grep-the-skill tests.** A test asserting that a skill file contains an exact
+line proves only that the source is the source: it fires on every intentional
+rewrite and sleeps through behavior regressions. `writing-good-tests.md` rules
+this out, and a policy test that asserted the old `.worktrees/` wording was
+deleted for exactly this reason. Skills are tested by the behavior of the agent
+reading them — an LLM suite here, or a drill scenario.
 
 **Every new hook needs a test suite**, and it must cover the fail-open paths
 (malformed JSON, missing transcript, unparseable input) as well as the blocking

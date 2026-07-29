@@ -79,10 +79,12 @@ restart. Use it alongside TodoWrite, not instead of it.
 Read the plan once, note its context and Global Constraints, and create a todo
 per task.
 
-**If native tasks are available** (`TaskCreate` / `TaskUpdate` / `TaskList`, gated
-behind `CLAUDE_CODE_ENABLE_TASKS`), mirror the plan into them instead of todos.
-The ledger stays the resume mechanism; tasks add dependency enforcement and a live
-view of progress in the IDE.
+**If `TaskCreate` is in your tool list**, mirror the plan into native tasks
+instead of todos. They add two things todos don't: `blockedBy` dependency
+enforcement, which is what actually stops a later task being started before the
+interface it consumes exists, and a live task panel in the IDE, so the user can
+see what is done, blocked, and next without reading your output. The ledger stays
+the resume mechanism either way.
 
 - One task per plan task. Keep the subject compact — aim for 60 characters or
   fewer, no trailing detail. Every task's subject is re-injected into your context
