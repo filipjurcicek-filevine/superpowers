@@ -123,10 +123,15 @@ instructions yourself, and do not paste role templates into prompts.
 
 | Role | Agent type | Effort | Tools |
 |------|-----------|--------|-------|
-| Implementer | `superpowers:sdd-implementer` | high | full |
+| Implementer — a task, a fix round, or the final fix wave | `superpowers:sdd-implementer` | high | full |
 | Task reviewer | `superpowers:sdd-task-reviewer` | high | read-only |
-| Scoped re-reviewer | `superpowers:sdd-re-reviewer` | high | read-only |
+| Scoped re-reviewer — a task fix round or the final fix wave | `superpowers:sdd-re-reviewer` | high | read-only |
 | Final whole-branch reviewer | `superpowers:code-reviewer` | xhigh | read-only |
+
+These four are the only agent types that may receive a workspace artifact path.
+A dispatch whose prompt carries a `.superpowers/sdd/` path under any other type
+is blocked by the `pre-agent-effort-pin` hook, because it would run the role at
+session effort with full write tools.
 
 Each definition carries its own contract, effort tier, and tool set. Reviewers
 have no file-editing tools, so their reviews are read-only by construction. Your
@@ -349,11 +354,11 @@ wall-clock. Merge the finding sets afterward: agreement is evidence but not proo
 (two models share assumptions), Codex-only findings go through the verification
 gate, and our reviewer's findings stand on their own. Deduplicate by file and line.
 
-If the final review returns findings — from either reviewer — dispatch ONE fix
-subagent with the complete merged list, not one fixer per finding and not a second
-wave for the Codex set. Per-finding fixers each rebuild context
-and re-run suites; a real session's final-review fix wave cost more than all its
-tasks combined. Then run exactly one scoped re-review of the fix wave
+If the final review returns findings — from either reviewer — dispatch ONE
+`superpowers:sdd-implementer` with the complete merged list, not one fixer per
+finding and not a second wave for the Codex set. Per-finding fixers each rebuild
+context and re-run suites; a real session's final-review fix wave cost more than
+all its tasks combined. Then run exactly one scoped re-review of the fix wave
 (`scripts/review-package PLAN_FILE FIX_BASE HEAD`, `superpowers:sdd-re-reviewer`).
 Adjudicate residual findings as in the task loop's breaker: park with rulings, or
 stop on load-bearing ones. There is no second fix wave — residual load-bearing
