@@ -95,6 +95,19 @@ Both fail open on any error and both have a kill switch.
 | [`pre-agent-effort-pin`](hooks/pre-agent-effort-pin) | `Agent` | A subagent-driven-development dispatch (its prompt carries a `.superpowers/sdd/` artifact path) that names no effort-pinned agent type — it would run at session effort, with no role contract and full write tools, so a reviewer could edit the code under review. | `SUPERPOWERS_EFFORT_GUARD=0` |
 | [`pre-taskupdate-user-gate`](hooks/pre-taskupdate-user-gate) | `TaskUpdate` | Closing a task marked `"userGate": true` whose `verifyCommand` never ran in the session. Catches gates closed by declaring them verified inline. **Dormant** unless native tasks are enabled. | `SUPERPOWERS_USERGATE_GUARD=0` |
 
+## Codex cross-review (optional)
+
+At three points — the spec, the plan, and the finished branch — a second model
+reads the artifact and reports what it thinks is wrong. Every finding is then
+verified against the artifact or the code, and only confirmed ones are applied;
+refuted and out-of-scope findings get a recorded ruling rather than silent
+deletion. A finding that objects to something the spec deliberately decided goes to
+you, not into the spec.
+
+Requires the [Codex CLI](https://github.com/openai/codex) on PATH. Without it, each
+call site says so in one line and continues — it is an enhancement, never a gate.
+See [cross-reviewing-with-codex](skills/cross-reviewing-with-codex/SKILL.md).
+
 ### Native task management (optional)
 
 `TaskCreate` / `TaskUpdate` / `TaskList` give dependency enforcement via
@@ -105,11 +118,11 @@ becomes active; the progress ledger stays the resume mechanism either way.
 
 ## The Basic Workflow
 
-1. **brainstorming** - Activates before writing code. Refines rough ideas through questions, explores alternatives, presents design in sections for validation. Saves design document.
+1. **brainstorming** - Activates before writing code. Refines rough ideas through questions, explores alternatives, presents design in sections for validation. Saves a design document, cross-reviewed by Codex before you read it.
 
 2. **using-git-worktrees** - Activates after design approval. Creates isolated workspace on new branch, runs project setup, verifies clean test baseline.
 
-3. **writing-plans** - Activates with approved design. Breaks work into bite-sized tasks (2-5 minutes each). Every task has exact file paths, complete code, verification steps.
+3. **writing-plans** - Activates with approved design. Breaks work into bite-sized tasks (2-5 minutes each). Every task has exact file paths, complete code, verification steps. Cross-reviewed against the spec, so a requirement with no task surfaces before execution starts.
 
 4. **subagent-driven-development** or **executing-plans** - Activates with plan. Dispatches a fresh implementer per task, each gated by an independent review of spec compliance and code quality — or, when tasks are tightly coupled, executes them inline in this session.
 
@@ -117,7 +130,7 @@ becomes active; the progress ledger stays the resume mechanism either way.
 
 6. **requesting-code-review** - Activates between tasks. Reviews against plan, reports issues by severity. Critical issues block progress.
 
-7. **finishing-a-development-branch** - Activates when tasks complete. Verifies tests, presents options (merge / PR / keep), cleans up the worktree it created.
+7. **finishing-a-development-branch** - Activates when tasks complete. Verifies tests, asks how to integrate (merge / PR / keep), cleans up the worktree it created.
 
 **The agent checks for relevant skills before any task.** Mandatory workflows, not suggestions.
 
@@ -138,6 +151,7 @@ becomes active; the progress ledger stays the resume mechanism either way.
 - **executing-plans** - Inline execution for tightly coupled tasks
 - **dispatching-parallel-agents** - Concurrent subagent workflows
 - **requesting-code-review** - Dispatching an independent reviewer
+- **cross-reviewing-with-codex** - Second-model review of a spec, plan, or branch, with every finding verified before it is applied
 - **receiving-code-review** - Responding to feedback
 - **using-git-worktrees** - Parallel development branches
 - **finishing-a-development-branch** - Merge/PR decision workflow

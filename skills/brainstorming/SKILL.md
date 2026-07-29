@@ -28,8 +28,9 @@ Create a todo for each item and complete them in order:
 4. **Present the design** — in sections scaled to their complexity, approved section by section
 5. **Write the design doc** — `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`, committed
 6. **Self-review the spec** — placeholders, contradictions, ambiguity, scope
-7. **User reviews the written spec**
-8. **Hand off** — invoke superpowers:writing-plans
+7. **Cross-review the spec** — superpowers:cross-reviewing-with-codex, if codex is installed
+8. **User reviews the written spec**
+9. **Hand off** — invoke superpowers:writing-plans
 
 **The terminal state is invoking writing-plans.** Not frontend-design, not
 mcp-builder, not any other implementation skill.
@@ -127,9 +128,18 @@ elements-of-style:writing-clearly-and-concisely skill if available. Commit it.
 
 Fix inline and move on — no second review pass.
 
+**Then cross-review it.** Use superpowers:cross-reviewing-with-codex, site 1. A
+second model reading the spec cold finds the ambiguities you can't see, because you
+wrote them. Confirmed findings get fixed in the spec now; the skill's verification
+gate decides which findings are real, and no unverified suggestion touches the
+spec. If codex isn't installed, say so in one line and carry on.
+
 **Then the user's review gate:**
 
 > "Spec written and committed to `<path>`. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."
+
+When a cross-review ran, add one line naming what it changed — the user is
+reviewing an amended spec and should know it.
 
 Wait for their response. Changes requested → make them and re-run the self-review.
 Only proceed on approval.

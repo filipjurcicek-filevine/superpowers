@@ -147,6 +147,18 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 
+## Cross-Review
+
+After the self-review, use superpowers:cross-reviewing-with-codex, site 2: a
+second model checks the plan against the spec. Its highest-value output is a spec
+requirement that no task implements — the defect class that otherwise surfaces
+halfway through execution, when the plan is already being followed.
+
+Confirmed findings get fixed in the plan before the execution handoff. The skill's
+verification gate rules on each one; a finding that objects to something the spec
+deliberately decided goes to the user, not into the plan. Skip silently — one line
+— when codex isn't installed.
+
 ## Execution Handoff
 
 After saving the plan, ask how to execute it with `AskUserQuestion` — one

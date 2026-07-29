@@ -111,8 +111,16 @@ before trusting it under pressure.
 
 ## Repo Conventions
 
-- Zero runtime dependencies. Skills use the harness's tools and the project's own
-  toolchain, nothing else.
+- **No required runtime dependencies.** Skills use the harness's tools and the
+  project's own toolchain. An *optional* external tool is allowed only when the
+  skill checks for it (`command -v`), skips in one line when it is absent, and
+  never asks the user to install it — `cross-reviewing-with-codex` is the one such
+  skill, and the pattern it uses is the bar for any other.
+- **An outside model's findings are claims.** Any skill that brings in a review
+  from another model must verify each finding against the artifact or the code
+  before acting on it, and must record a ruling for every finding — confirmed,
+  refuted, or out of scope. Never wire in a reviewer whose output gets applied
+  unverified; a second model has no access to what this project decided or why.
 - Supporting files exist for reusable tools and heavy reference only. An
   unreferenced file in a skill directory is dead weight — delete it or wire it in.
 - One concern per commit.

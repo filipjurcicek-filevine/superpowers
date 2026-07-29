@@ -342,8 +342,16 @@ the branch started from, e.g. `git merge-base main HEAD`) and dispatch
 of re-deriving the branch diff. Point it at the ledger's deferred-minor and
 parked lines so it can triage which must be fixed before merge.
 
-If the final review returns findings, dispatch ONE fix subagent with the complete
-findings list — not one fixer per finding. Per-finding fixers each rebuild context
+**Then cross-review the branch while that reviewer works.** Use
+superpowers:cross-reviewing-with-codex, site 3 — `codex review --base <merge-base>`.
+The two reviews are independent, so running them concurrently costs little
+wall-clock. Merge the finding sets afterward: agreement is evidence but not proof
+(two models share assumptions), Codex-only findings go through the verification
+gate, and our reviewer's findings stand on their own. Deduplicate by file and line.
+
+If the final review returns findings — from either reviewer — dispatch ONE fix
+subagent with the complete merged list, not one fixer per finding and not a second
+wave for the Codex set. Per-finding fixers each rebuild context
 and re-run suites; a real session's final-review fix wave cost more than all its
 tasks combined. Then run exactly one scoped re-review of the fix wave
 (`scripts/review-package PLAN_FILE FIX_BASE HEAD`, `superpowers:sdd-re-reviewer`).
