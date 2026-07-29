@@ -27,7 +27,14 @@ Superpowers is a complete software development methodology for your coding agent
 
 ## Quickstart
 
-Give your agent Superpowers: [Claude Code](#claude-code) (CLI or VS Code extension).
+```bash
+git clone https://github.com/filipjurcicek-filevine/superpowers.git ~/Projects/superpowers
+claude plugin marketplace add ~/Projects/superpowers
+claude plugin install superpowers@superpowers-dev
+```
+
+Restart Claude Code — CLI or VS Code extension, same install. Full detail,
+including how to pick up your own edits, under [Installation](#installation).
 
 ## How it works
 
@@ -47,35 +54,94 @@ If you're using Superpowers in enterprise and could benefit from commercial supp
 
 ## Installation
 
-This fork installs as a Claude Code plugin.
+**This fork is not on any public marketplace.** Installing `superpowers` from the
+official or `obra/superpowers-marketplace` marketplaces gets you upstream, not this.
+Install it from a checkout instead.
 
-### Claude Code
+Every command below is a `claude` CLI invocation; the `/plugin ...` slash-command
+equivalents work identically inside a session. Both the CLI and the VS Code
+extension read the same plugin config, so you install once.
 
-Superpowers is available via the [official Claude plugin marketplace](https://claude.com/plugins/superpowers)
+### 1. Get a checkout
 
-#### Official Marketplace
+Either a standalone clone:
 
-- Install the plugin from Anthropic's official marketplace:
+```bash
+git clone https://github.com/filipjurcicek-filevine/superpowers.git ~/Projects/superpowers
+```
 
-  ```bash
-  /plugin install superpowers@claude-plugins-official
-  ```
+Or pinned as a submodule, which is how this workspace does it — the pinned commit
+becomes part of the parent repo's history:
 
-#### Superpowers Marketplace
+```bash
+git submodule add https://github.com/filipjurcicek-filevine/superpowers.git superpowers
+```
 
-The Superpowers marketplace provides Superpowers and some other related plugins for Claude Code.
+### 2. Register it as a directory marketplace and install
 
-- Register the marketplace:
+```bash
+claude plugin marketplace add ~/Projects/superpowers    # or ./superpowers
+claude plugin install superpowers@superpowers-dev
+```
 
-  ```bash
-  /plugin marketplace add obra/superpowers-marketplace
-  ```
+The marketplace name is `superpowers-dev`, from
+[`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json). Add
+`--scope project` or `--scope local` to `install` to scope it to one repo instead
+of your user account (default is `user`).
 
-- Install the plugin from this marketplace:
+**Restart Claude Code.** Plugin changes apply on restart.
 
-  ```bash
-  /plugin install superpowers@superpowers-marketplace
-  ```
+### 3. Remove upstream Superpowers if you have it
+
+Both publish skills under the `superpowers:` namespace, so running both means two
+`superpowers:brainstorming` skills and no way to tell which one answered:
+
+```bash
+claude plugin list                                       # see what is installed
+claude plugin uninstall superpowers@claude-plugins-official
+```
+
+### Updating after you edit the fork
+
+**Editing the working tree changes nothing on its own.** The plugin runs from a
+version-keyed cache under `~/.claude/plugins/cache/superpowers-dev/`, and
+`claude plugin update` compares versions — with the version unchanged it reports
+"already at the latest version" and keeps serving the old copy. Verified: a probe
+line added to a tracked file did not reach the cache until the version moved.
+
+So bump the version, then update:
+
+```bash
+scripts/bump-version.sh 6.2.1-cc.2        # writes package.json + both manifests
+claude plugin marketplace update superpowers-dev
+claude plugin update superpowers@superpowers-dev
+# then restart Claude Code
+```
+
+Version convention for this fork: `<upstream-version>-cc.<N>`, so `6.2.1-cc.2`
+reads as "ahead of upstream 6.2.0, fork revision 2". `bump-version.sh --check`
+reports drift; `--audit` greps the repo for stragglers.
+
+### Verify what is actually live
+
+```bash
+claude plugin details superpowers@superpowers-dev
+```
+
+That prints the running version and a component inventory. This fork should show
+**15 skills**, **4 agents** (`code-reviewer`, `sdd-implementer`,
+`sdd-task-reviewer`, `sdd-re-reviewer`), and **2 hooks** (SessionStart,
+PreToolUse). If `agents` is 0 or `cross-reviewing-with-codex` is missing from the
+skill list, you are on a stale cache — bump and update.
+
+`claude plugin validate .` checks the manifests before you commit a change to them.
+
+### Optional capabilities
+
+| Feature | Enable | Effect |
+|---|---|---|
+| Native task management | `CLAUDE_CODE_ENABLE_TASKS=1` | `blockedBy` dependency enforcement and a live task panel; activates the user-gate hook |
+| Codex cross-review | [Codex CLI](https://github.com/openai/codex) on PATH | Spec, plan, and branch cross-review. Confirm it runs: `codex exec -s read-only -o /tmp/m "Reply OK" </dev/null` — a 400 about the model means the configured default is unusable, so pin one with `-c model=<name>` |
 
 ### Other harnesses
 
@@ -180,7 +246,9 @@ See `skills/writing-skills/SKILL.md` for the complete guide.
 
 ## Updating
 
-Superpowers updates are somewhat coding-agent dependent, but are often automatic.
+Nothing here auto-updates: this fork installs from a local checkout, so you pull
+and then bump-and-update. See
+[Updating after you edit the fork](#updating-after-you-edit-the-fork).
 
 ## License
 

@@ -1,6 +1,6 @@
 {
   "name": "superpowers-dev",
-  "description": "Development marketplace for Superpowers core skills library",
+  "description": "Claude-Code-only fork of Superpowers, tuned for Opus 5",
   "owner": {
     "name": "Jesse Vincent",
     "email": "jesse@fsck.com"
@@ -8,8 +8,8 @@
   "plugins": [
     {
       "name": "superpowers",
-      "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques",
-      "version": "6.2.0",
+      "description": "Superpowers skills for Claude Code, tuned for Opus 5",
+      "version": "6.2.1-cc.1",
       "source": "./",
       "author": {
         "name": "Jesse Vincent",
