@@ -5,8 +5,6 @@ description: Use when implementing any feature or bugfix, before writing impleme
 
 # Test-Driven Development (TDD)
 
-## Overview
-
 Write the test first. Watch it fail. Write minimal code to pass.
 
 **Core principle:** if you didn't watch the test fail, you don't know if it

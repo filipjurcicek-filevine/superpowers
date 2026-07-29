@@ -5,8 +5,6 @@ description: Use when encountering any bug, test failure, or unexpected behavior
 
 # Systematic Debugging
 
-## Overview
-
 **Core principle:** find the root cause before attempting a fix. A fix that
 addresses a symptom leaves the bug in place and adds code that hides it.
 
@@ -253,7 +251,10 @@ If systematic investigation reveals issue is truly environmental, timing-depende
 3. Implement appropriate handling (retry, timeout, error message)
 4. Add monitoring/logging for future investigation
 
-**But:** 95% of "no root cause" cases are incomplete investigation.
+**But** treat "no root cause" as the rare verdict it is. Before accepting it,
+name which of the four phases you actually completed — an unreproduced bug and an
+unread reference implementation are the two most common reasons this conclusion
+turns out to be wrong.
 
 ## Supporting Techniques
 

@@ -5,16 +5,12 @@ description: Use when starting feature work that needs isolation from the curren
 
 # Using Git Worktrees
 
-## Overview
-
 Ensure work happens in an isolated workspace. Claude Code owns worktree
 creation through `EnterWorktree` and `ExitWorktree`; this skill decides
 whether a worktree is needed and gets consent to create one.
 
 **Core principle:** Detect existing isolation first. Then get consent. Then
 use `EnterWorktree`. Never `git worktree add`.
-
-**Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
 
 ## Step 0: Detect Existing Isolation
 
@@ -95,22 +91,24 @@ their editor is showing your work.
 
 ## Step 2: Project Setup
 
-Auto-detect and run appropriate setup:
+Run **this project's** documented setup, in this order of precedence:
 
-```bash
-# Node.js
-if [ -f package.json ]; then npm install; fi
+1. **What the project says.** CLAUDE.md, AGENTS.md, README, or a `Makefile` /
+   `justfile` target. A project that documents its setup is the source of truth,
+   and it is the only place a private registry, a required env var, or a
+   pre-install step will be written down.
+2. **What the lockfile says**, when nothing is documented. The lockfile names the
+   tool: `pnpm-lock.yaml` → `pnpm install`, `yarn.lock` → `yarn`,
+   `package-lock.json` → `npm ci`, `uv.lock` → `uv sync`, `poetry.lock` →
+   `poetry install`, `Cargo.lock` → `cargo build`, `go.sum` → `go mod download`.
+3. **Ask**, when a manifest exists with no lockfile and no docs. Guessing the
+   installer is how you get a second, conflicting environment — a `pip install`
+   in a `uv` project resolves different versions than the project ships.
 
-# Rust
-if [ -f Cargo.toml ]; then cargo build; fi
-
-# Python
-if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-if [ -f pyproject.toml ]; then poetry install; fi
-
-# Go
-if [ -f go.mod ]; then go mod download; fi
-```
+Do not run two installers for one language because two manifests exist. In a
+worktree the dependency directory is usually fresh and not shared with the
+original checkout, so setup does have to run — but confirm before a long install
+whether the project expects a symlink or a shared store instead.
 
 ## Step 3: Verify Clean Baseline
 
@@ -140,7 +138,8 @@ Ready to implement <feature-name>
 | Already in an `EnterWorktree` session | Use it; `path` to switch, never a second `name` |
 | Work depends on unpushed local commits | Confirm the base ref before implementing |
 | Baseline tests fail | Report failures + ask |
-| No package.json/Cargo.toml | Skip dependency install |
+| Setup undocumented, lockfile present | Use the lockfile's tool |
+| Manifest present, no lockfile, no docs | Ask which installer |
 
 Cleanup happens at finish time via `ExitWorktree` — see
 superpowers:finishing-a-development-branch.

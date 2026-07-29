@@ -5,8 +5,6 @@ description: Use when facing 2+ independent tasks that can be worked without sha
 
 # Dispatching Parallel Agents
 
-## Overview
-
 Independent problems investigated one after another waste wall-clock time. Give
 each its own agent, with context you construct rather than context it inherits.
 

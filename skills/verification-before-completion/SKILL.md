@@ -5,8 +5,6 @@ description: Use when about to claim work is complete, fixed, or passing — bef
 
 # Verification Before Completion
 
-## Overview
-
 **Core principle:** evidence before claims, always. A claim you have not run the
 command for in this message is a guess wearing a result's clothing.
 

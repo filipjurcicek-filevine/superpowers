@@ -5,8 +5,6 @@ description: Use when receiving code review feedback, before implementing any of
 
 # Receiving Code Review
 
-## Overview
-
 Review feedback is a set of technical claims. Evaluate each one against the
 codebase before acting on it.
 

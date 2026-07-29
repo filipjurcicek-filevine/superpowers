@@ -5,11 +5,7 @@ description: Use when executing an implementation plan inline in this session, r
 
 # Executing Plans Inline
 
-## Overview
-
 Execute a plan yourself, task by task, in this session.
-
-**Announce at start:** "I'm using the executing-plans skill to implement this plan."
 
 ## When This Is the Right Route
 
@@ -50,8 +46,7 @@ the point at which you run them.
 
 After all tasks pass their verifications:
 
-- Announce: "I'm using the finishing-a-development-branch skill to complete this work."
-- **REQUIRED SUB-SKILL:** superpowers:finishing-a-development-branch
+**REQUIRED SUB-SKILL:** superpowers:finishing-a-development-branch
 
 ## When to Stop and Ask
 
