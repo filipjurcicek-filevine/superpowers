@@ -8,6 +8,7 @@
     "exclude": [
       "CHANGELOG.md",
       "RELEASE-NOTES.md",
+      "README.md",
       "node_modules",
       ".git",
       ".version-bump.json",

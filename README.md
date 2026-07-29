@@ -38,19 +38,39 @@ including how to pick up your own edits, under [Installation](#installation).
 
 ## How it works
 
-It starts from the moment you fire up your coding agent. As soon as it sees that you're building something, it *doesn't* just jump into trying to write code. Instead, it steps back and asks you what you're really trying to do. 
+The SessionStart hook inlines the `using-superpowers` bootstrap into every
+session, so when a turn is about to write code the agent invokes a skill before
+acting instead of starting to type. From there the work runs through four
+approval gates, and the gates are the point — each one is a place the process
+stops for you rather than guessing.
 
-Once it's teased a spec out of the conversation, it shows it to you in chunks short enough to actually read and digest. 
+**Brainstorm → spec.** Instead of jumping to code, the agent asks what you are
+actually building, proposes two or three approaches with real trade-offs, and
+presents the design in sections short enough to read. The spec is written to
+`docs/superpowers/specs/`, self-reviewed, and — if the Codex CLI is on PATH —
+cross-reviewed by a second model before you see it. *Gate 1: you approve the
+spec.*
 
-After you've signed off on the design, your agent puts together an implementation plan that's clear enough for an enthusiastic junior engineer with poor taste, no judgement, no project context, and an aversion to testing to follow. It emphasizes true red/green TDD, YAGNI (You Aren't Gonna Need It), and DRY. 
+**Spec → plan.** The plan is written for an engineer with no project context and
+an aversion to testing: exact file paths, real code in every step, red/green TDD,
+YAGNI, DRY. Codex then checks the plan against the spec, whose highest-value
+finding is a requirement no task implements. *Gate 2: you approve the plan and
+pick how to execute it.*
 
-Next up, once you say "go", it launches a *subagent-driven-development* process, having agents work through each engineering task, inspecting and reviewing their work, and continuing forward. It's not uncommon for your agent to work autonomously for a couple hours at a time without deviating from the plan you put together.
+**Plan → implementation.** Subagent-driven development dispatches a fresh
+implementer per task and an independent reviewer after each one, on pinned
+effort tiers, with reviewers that have no file-editing tools. A five-round fix
+loop with a circuit breaker handles findings; a ledger on disk survives context
+summarization, so a long run resumes instead of re-doing finished work. *Gate 3:
+the loop stops for you on a plan contradiction or a load-bearing finding it
+cannot resolve.*
 
-There's a bunch more to it, but that's the core of the system. And because the skills trigger automatically, you don't need to do anything special. Your coding agent just has Superpowers.
+**Implementation → integration.** A whole-branch review at `xhigh` effort, plus a
+Codex branch review, then one fix wave. *Gate 4: you choose merge, PR, or keep.*
 
-## Commercial Services
-
-If you're using Superpowers in enterprise and could benefit from commercial support, additional tooling, or managed spending, please don't hesitate to drop us a line at sales@primeradiant.com.
+Every finding from an outside model is a claim until it is checked against the
+artifact, and every ruling gets recorded — confirmed, refuted, or out of scope.
+Nothing a second model says is applied unverified.
 
 ## Installation
 
@@ -101,7 +121,11 @@ claude plugin list                                       # see what is installed
 claude plugin uninstall superpowers@claude-plugins-official
 ```
 
-### Updating after you edit the fork
+### Updating, after your own edits or a pull
+
+Nothing here auto-updates. This fork installs from a local checkout, so both
+paths are the same: get the commits (`git pull`, or your own edit), then
+bump-and-update.
 
 **Editing the working tree changes nothing on its own.** The plugin runs from a
 version-keyed cache under `~/.claude/plugins/cache/superpowers-cc/`, and
@@ -112,15 +136,24 @@ line added to a tracked file did not reach the cache until the version moved.
 So bump the version, then update:
 
 ```bash
-scripts/bump-version.sh 6.2.1-cc.2        # writes package.json + both manifests
+scripts/bump-version.sh <next-version>    # writes package.json + both manifests
 claude plugin marketplace update superpowers-cc
 claude plugin update superpowers@superpowers-cc
 # then restart Claude Code
 ```
 
+`--check` prints the current version if you need to know what to increment from.
+
 Version convention for this fork: `<upstream-version>-cc.<N>`, so `6.2.1-cc.2`
-reads as "ahead of upstream 6.2.0, fork revision 2". `bump-version.sh --check`
+reads as "based on upstream 6.2.1, fork revision 2". `bump-version.sh --check`
 reports drift; `--audit` greps the repo for stragglers.
+
+**`-cc.N` is a semver prerelease, so it sorts *below* the upstream release it
+names.** `6.2.1-cc.2` precedes `6.2.1`. That is harmless here because the only
+comparison that ever happens is fork-to-fork — one marketplace, one plugin, and
+successive `-cc.N` bumps do order correctly. Do not read the version as "ahead of
+upstream", and do not install this alongside upstream and expect this one to win
+(see step 3 above, which tells you to remove upstream).
 
 ### Verify what is actually live
 
@@ -153,8 +186,31 @@ Install [upstream](https://github.com/obra/superpowers) for those harnesses.
 
 ## Hooks
 
-Two `PreToolUse` gates ship registered in [`hooks/hooks.json`](hooks/hooks.json).
-Both fail open on any error and both have a kill switch.
+Three hooks ship registered in [`hooks/hooks.json`](hooks/hooks.json), across two
+events — which is why `claude plugin details` reports "Hooks (2)". All of them
+fail open on any error.
+
+### SessionStart — the one that makes the rest fire
+
+[`hooks/session-start`](hooks/session-start) inlines
+`skills/using-superpowers/SKILL.md` into every session's context as a
+`<superpowers-bootstrap>` block, on `startup`, `clear`, and `compact`. That
+bootstrap is what tells the agent to invoke a skill before acting; without it the
+other fourteen skills are installed but nothing routes to them. It has no kill
+switch because disabling it disables the library.
+
+Two consequences worth knowing:
+
+- **`using-superpowers` is the only skill whose full text is always resident.**
+  Everything it says is paid for in every session — which is why it is the
+  shortest skill in the library and should stay that way.
+- **Editing `using-superpowers` changes every session, not just the ones that
+  invoke it.** Re-check the always-on token cost in `claude plugin details` after
+  any edit to it.
+
+### PreToolUse — two gates
+
+Both match narrowly, fail open, and carry a kill switch.
 
 | Hook | Fires on | Blocks | Disable |
 |---|---|---|---|
@@ -174,7 +230,7 @@ Requires the [Codex CLI](https://github.com/openai/codex) on PATH. Without it, e
 call site says so in one line and continues — it is an enhancement, never a gate.
 See [cross-reviewing-with-codex](skills/cross-reviewing-with-codex/SKILL.md).
 
-### Native task management (optional)
+## Native task management (optional)
 
 `TaskCreate` / `TaskUpdate` / `TaskList` give dependency enforcement via
 `blockedBy` and a live task view in the IDE. They sit behind
@@ -234,21 +290,13 @@ becomes active; the progress ledger stays the resume mechanism either way.
 - **Complexity reduction** - Simplicity as primary goal
 - **Evidence over claims** - Verify before declaring success
 
-Read [the original release announcement](https://blog.fsck.com/2025/10/09/superpowers/).
-
 ## Contributing
 
 This is a single-harness fork; changes here are not sent upstream. Contribute portable improvements to [upstream](https://github.com/obra/superpowers) instead. Within this fork, treat skill edits as behavior changes: follow the `writing-skills` skill, and measure before and after rather than assuming a rewording is an improvement.
 
-Skill-behavior tests use the drill eval harness from [superpowers-evals](https://github.com/prime-radiant-inc/superpowers-evals/), cloned into `evals/` — see `evals/README.md` for setup. Plugin-infrastructure tests live at `tests/` and run via the relevant `run-*.sh` or `npm test`.
+Skill-behavior tests use the drill eval harness from [superpowers-evals](https://github.com/prime-radiant-inc/superpowers-evals/), cloned into `evals/` — see `evals/README.md` for setup. Plugin-infrastructure tests live in `tests/`; each suite is a standalone script you run directly (`bash tests/hooks/test-session-start.sh`), and [docs/testing.md](docs/testing.md) lists them all. There is no `npm test` — `package.json` declares no scripts.
 
 See `skills/writing-skills/SKILL.md` for the complete guide.
-
-## Updating
-
-Nothing here auto-updates: this fork installs from a local checkout, so you pull
-and then bump-and-update. See
-[Updating after you edit the fork](#updating-after-you-edit-the-fork).
 
 ## License
 
@@ -260,10 +308,22 @@ None. Upstream's only phone-home was the logo on brainstorming's visual
 companion; this fork removed the companion, so nothing here contacts a network
 service.
 
-## Community
+## Credits
 
-Superpowers is built by [Jesse Vincent](https://blog.fsck.com) and the rest of the folks at [Prime Radiant](https://primeradiant.com).
+Superpowers is built by [Jesse Vincent](https://blog.fsck.com) and the rest of
+the folks at [Prime Radiant](https://primeradiant.com). This is a private
+Claude-Code-only fork of their work; the MIT copyright in
+[LICENSE](LICENSE) is theirs. Read
+[the original release announcement](https://blog.fsck.com/2025/10/09/superpowers/)
+for the methodology's own account of itself.
 
-- **Discord**: [Join us](https://discord.gg/35wsABTejz) for community support, questions, and sharing what you're building with Superpowers
-- **Issues**: https://github.com/obra/superpowers/issues
-- **Release announcements**: [Sign up](https://primeradiant.com/superpowers/) to get notified about new versions
+**Where to report what:**
+
+| Issue | Where |
+|---|---|
+| Something in this fork — a skill, a hook, the retune | This repo's issues |
+| Something that reproduces on upstream too | [obra/superpowers](https://github.com/obra/superpowers/issues), where it can be fixed for everyone |
+| Questions about the upstream methodology | Upstream's [Discord](https://discord.gg/35wsABTejz) |
+
+Do not file fork-specific bugs upstream. None of the changes here are
+upstreamable, so an issue about them has no fix path there.
