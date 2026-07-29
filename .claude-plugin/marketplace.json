@@ -2,18 +2,18 @@
   "name": "superpowers-cc",
   "description": "Claude-Code-only fork of Superpowers, tuned for Opus 5",
   "owner": {
-    "name": "Jesse Vincent",
-    "email": "jesse@fsck.com"
+    "name": "Filip Jurcicek",
+    "email": "filipjurcicek@filevine.com"
   },
   "plugins": [
     {
       "name": "superpowers",
       "description": "Superpowers skills for Claude Code, tuned for Opus 5",
-      "version": "6.2.1-cc.1",
+      "version": "6.2.1-cc.2",
       "source": "./",
       "author": {
-        "name": "Jesse Vincent",
-        "email": "jesse@fsck.com"
+        "name": "Filip Jurcicek",
+        "email": "filipjurcicek@filevine.com"
       }
     }
   ]
