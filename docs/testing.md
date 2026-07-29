@@ -66,3 +66,10 @@ Scenarios are slow (3-30+ minutes each) and run real sessions, so they are not i
 CI. They are the only thing that tells you whether a skill edit changed behavior
 in the direction you intended — see `CLAUDE.md`, "Skill Changes Are Behavior
 Changes".
+
+## Baseline records
+
+`docs/skill-tests/<skill-name>/` holds the RED-phase transcripts and pressure
+scenarios recorded while a skill was developed. Not runnable, not shipped in the
+plugin — a record of what the baseline behavior was. See
+`docs/skill-tests/README.md`.
