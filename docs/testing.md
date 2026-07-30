@@ -6,8 +6,9 @@ Two distinct kinds of tests, each in its own directory:
   tests over the hooks, the SDD workspace scripts, and the analysis utilities.
 - **`evals/`** — do agents behave correctly in real sessions? A harness launching
   real Claude Code sessions, with an LLM actor and verifier judging skill
-  compliance. Claude runs are driven through `obol`, not tmux; tmux is needed only
-  by the Antigravity and Windows launchers.
+  compliance. quorum orchestrates and prices the run; **gauntlet** supplies the QA
+  actor and verifier and drives the agent through **tmux**. Both are required for
+  a live run — see the prerequisites below.
 
 ## Plugin tests
 
@@ -58,14 +59,36 @@ gitignored here. The harness is **quorum** (formerly `drill`), a Bun/TypeScript
 project — not Python. Each scenario is a directory under `evals/scenarios/<name>/`
 holding `story.md`, `setup.sh`, and `checks.sh`; 81 ship today.
 
-Setup, verified 2026-07-30 on Bun 1.3.14:
+**quorum is not self-contained.** It shells out to **gauntlet**, a separate repo
+that supplies the QA actor and the LLM verifier, and gauntlet drives the
+agent-under-test through **tmux**. Missing either one fails a run late, after
+provisioning, with an error that does not name the setup step you skipped:
+
+| Missing | Symptom |
+|---|---|
+| `gauntlet` on PATH | `quorum error (unknown): Executable not found in $PATH: "gauntlet"` |
+| `tmux` | `no Claude transcript appeared under isolated .../home/.claude/projects` — the real cause is `Executable not found in $PATH: "tmux"`, visible only in `<run>/gauntlet-agent/results/*/run.jsonl` |
+
+Full setup, verified 2026-07-30 on Bun 1.3.14, gauntlet at
+`prime-radiant-inc/gauntlet`, tmux 3.7b:
 
 ```bash
-brew install oven-sh/bun/bun     # needs bun >= 1.3.13
-cd evals && bun install
+brew install oven-sh/bun/bun     # quorum needs >=1.3.13, gauntlet needs >=1.3.14
+brew install tmux                # gauntlet's cli/tui adapter drives the SUT through tmux
+
+git clone https://github.com/prime-radiant-inc/gauntlet.git ~/Projects/gauntlet
+cd ~/Projects/gauntlet && bun install && bun link   # puts it in ~/.bun/bin
+export PATH="$HOME/.bun/bin:$PATH"                  # add to your shell profile
+                                                    # (or set GAUNTLET_ROOT instead)
+
+cd <superpowers>/evals && bun install
 bun run check                    # static gates: biome + tsc + bun test. No API calls.
 bun run quorum check             # validates every scenario definition
 ```
+
+Both `bun run check` and `quorum check` pass **without** gauntlet or tmux — they
+never launch an agent. So a green static suite is not evidence that a live run
+will work.
 
 ### Cost data
 
@@ -101,6 +124,13 @@ Rates after a 2026-07-30 refresh, per MTok:
 Identical, so opus5-vs-opus comparisons are directly readable as a behavior
 delta rather than a price delta. Verified on obol 0.8.0 with a synthetic ATIF
 trajectory: 1M input + 1M output priced at `total_usd` 30, `unpriced_models` `[]`.
+
+**The terminal table cannot tell the two apart.** `shortModel` in
+`src/cli/render.ts` collapses any id containing "opus" to `opus`, so a
+`claude-opus-5` run and a `claude-opus-4-8` run both print a row labelled `opus`.
+Read `verdict.json` → `coding_agent.model` for the id that actually ran; the
+session log under `<run>/home/.claude/projects/**/*.jsonl` is the independent
+confirmation.
 
 ### Running a scenario
 
