@@ -1,6 +1,6 @@
 ---
 name: cross-reviewing-with-codex
-description: Use when a spec, an implementation plan, or a finished branch is ready for an outside opinion — invoked by brainstorming, writing-plans, and subagent-driven-development at their review points
+description: Use when a spec, an implementation plan, or a finished branch is ready for an outside opinion
 ---
 
 # Cross-Reviewing With Codex
