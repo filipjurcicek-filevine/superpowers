@@ -7,7 +7,9 @@ node_modules/
 inspo
 triage/
 
-# Eval harness lives in its own repository, cloned into evals/ for local
-# development (see CLAUDE.md / README.md). It is not part of the published
-# plugin, so the whole directory is ignored here.
+# The eval harness is its own repository and belongs OUTSIDE this checkout, at
+# ~/Projects/superpowers-evals (see docs/testing.md). `claude plugin install`
+# copies the marketplace source directory wholesale, so a nested clone lands in
+# the version-keyed plugin cache — 2.8 GB per version bump, observed. This entry
+# stays as a backstop in case one gets cloned here anyway.
 evals/

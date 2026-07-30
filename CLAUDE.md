@@ -117,7 +117,9 @@ Skills are not prose — they shape behavior. If you modify skill content:
 
 Skill-behavior evals live in
 [superpowers-evals](https://github.com/prime-radiant-inc/superpowers-evals/),
-cloned into `evals/` — see `docs/testing.md` for setup. quorum drives real Claude
+cloned to `~/Projects/superpowers-evals` — outside this repo, because
+`claude plugin install` copies the source directory wholesale. See
+`docs/testing.md` for setup. quorum drives real Claude
 Code sessions and judges compliance with an LLM verifier. Plugin-infrastructure
 tests live in `tests/`.
 

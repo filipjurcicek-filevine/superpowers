@@ -4,11 +4,18 @@ Two distinct kinds of tests, each in its own directory:
 
 - **`tests/`** — does the plugin's non-LLM code work? Bash, node, and python
   tests over the hooks, the SDD workspace scripts, and the analysis utilities.
-- **`evals/`** — do agents behave correctly in real sessions? A harness launching
-  real Claude Code sessions, with an LLM actor and verifier judging skill
+  In-tree.
+- **The eval harness** — do agents behave correctly in real sessions? A harness
+  launching real Claude Code sessions, with an LLM actor and verifier judging skill
   compliance. quorum orchestrates and prices the run; **gauntlet** supplies the QA
   actor and verifier and drives the agent through **tmux**. Both are required for
   a live run — see the prerequisites below.
+
+**The eval harness lives outside this repo**, at `~/Projects/superpowers-evals` by
+convention. It used to be cloned into `evals/` here, gitignored. That is no longer
+safe: `claude plugin install` copies the marketplace source directory wholesale, so
+a nested clone with its own `node_modules` and `results/` put 2.8 GB into the
+version-keyed plugin cache — once per version bump. Keep it a sibling, not a child.
 
 ## Plugin tests
 
@@ -53,11 +60,12 @@ ones. A hook that wedges a session is worse than the drift it was catching.
 
 ## Skill behavior evals
 
-Live in `evals/`, cloned from
-[superpowers-evals](https://github.com/prime-radiant-inc/superpowers-evals/) and
-gitignored here. The harness is **quorum** (formerly `drill`), a Bun/TypeScript
-project — not Python. Each scenario is a directory under `evals/scenarios/<name>/`
-holding `story.md`, `setup.sh`, and `checks.sh`; 81 ship today.
+Cloned from
+[superpowers-evals](https://github.com/prime-radiant-inc/superpowers-evals/) to
+`~/Projects/superpowers-evals`, outside this repo. The harness is **quorum**
+(formerly `drill`), a Bun/TypeScript project — not Python. Each scenario is a
+directory under `scenarios/<name>/` holding `story.md`, `setup.sh`, and
+`checks.sh`; 81 ship today.
 
 **quorum is not self-contained.** It shells out to **gauntlet**, a separate repo
 that supplies the QA actor and the LLM verifier, and gauntlet drives the
@@ -81,7 +89,8 @@ cd ~/Projects/gauntlet && bun install && bun link   # puts it in ~/.bun/bin
 export PATH="$HOME/.bun/bin:$PATH"                  # add to your shell profile
                                                     # (or set GAUNTLET_ROOT instead)
 
-cd <superpowers>/evals && bun install
+git clone https://github.com/prime-radiant-inc/superpowers-evals.git ~/Projects/superpowers-evals
+cd ~/Projects/superpowers-evals && bun install
 bun run check                    # static gates: biome + tsc + bun test. No API calls.
 bun run quorum check             # validates every scenario definition
 ```
@@ -99,7 +108,7 @@ is actually "no pricing table exists on this machine". quorum never refreshes on
 your behalf.
 
 ```bash
-cd evals
+cd ~/Projects/superpowers-evals
 bun -e 'const{refresh}=await import("@primeradianthq/obol");
         console.log(JSON.stringify(await refresh(new Date().toISOString().slice(0,10))))'
 # → {"models":2546,"as_of":"...","written_to":"~/.local/share/obol/current.json"}
@@ -148,8 +157,8 @@ bun run quorum show <run-dir>
 quorum pins the agent's `HOME` and XDG dirs to a throwaway per-run home so it
 never sees your real `~/.claude`, but that narrows the blast radius rather than
 sandboxing it. Run these only locally, with only the one API key the run needs in
-the environment, and treat `evals/results/` as sensitive. See `evals/README.md`,
-"Safety Model".
+the environment, and treat the harness's `results/` as sensitive. See its
+`README.md`, "Safety Model".
 
 Scenarios are slow (3-30+ minutes each) and cost real tokens, so they are not in
 CI. They are the only thing that tells you whether a skill edit changed behavior
@@ -170,7 +179,7 @@ each run's skill base directory), so an A/B reads directly off it. `--json` for
 machine consumption, `--turns N` to change the re-read multiplier.
 
 ```bash
-python3 scripts/analyze-prompt-cost.py evals/results --glob 'tdd-holds-*'
+python3 scripts/analyze-prompt-cost.py ~/Projects/superpowers-evals/results --glob 'tdd-holds-*'
 ```
 
 Read it with two facts in mind, both of which produced a wrong answer first time:
