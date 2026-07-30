@@ -53,5 +53,8 @@ landscape, navigate.
 - `elements-of-style/03-elementary-principles-of-composition.md` — Strunk's full
   text on the six rules above, with his examples. Load when editing someone else's
   draft, or when a rule's boundary is unclear.
+- `ai-writing-tells.md` — the full watch lists. Load when a draft reads generic and
+  you cannot say why.
 
-Strunk 1918 is public domain; see that file's header for provenance.
+Strunk 1918 is public domain. `ai-writing-tells.md` is CC BY-SA 4.0, not MIT — see
+its header.
