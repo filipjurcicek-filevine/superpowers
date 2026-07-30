@@ -119,6 +119,46 @@ for (const forbiddenText of forbiddenTexts) {
     fi
 }
 
+assert_context_matches() {
+    local description="$1"
+    local pattern="$2"
+    local home="$3"
+    shift 3
+
+    local output
+    if ! output="$(env -i PATH="${PATH:-}" HOME="$home" "$@" 2>&1)"; then
+        fail "$description"
+        echo "    hook exited non-zero"
+        echo "$output" | sed 's/^/      /'
+        return
+    fi
+
+    if printf '%s' "$output" | EXPECT_PATTERN="$pattern" node -e '
+const input = require("fs").readFileSync(0, "utf8");
+let payload;
+try {
+  payload = JSON.parse(input);
+} catch (error) {
+  console.error(`invalid JSON: ${error.message}`);
+  process.exit(1);
+}
+const context = payload.hookSpecificOutput && payload.hookSpecificOutput.additionalContext;
+if (typeof context !== "string") {
+  console.error("missing additionalContext");
+  process.exit(1);
+}
+if (!new RegExp(process.env.EXPECT_PATTERN).test(context)) {
+  console.error(`context did not match /${process.env.EXPECT_PATTERN}/`);
+  console.error(`context tail was: ${JSON.stringify(context.slice(-160))}`);
+  process.exit(1);
+}
+'; then
+        pass "$description"
+    else
+        fail "$description"
+    fi
+}
+
 echo "SessionStart hook output tests"
 
 # Registration shape: the hook must declare shell:"bash" so Claude Code on
@@ -186,6 +226,71 @@ assert_command_output \
     "$legacy_home" \
     CLAUDE_PLUGIN_ROOT="$REPO_ROOT" \
     bash "$HOOK_UNDER_TEST"
+
+# Writing-style pointer: off unless SUPERPOWERS_WRITING_STYLE names a truthy
+# value. The pointer is a constant in the hook, so there is no file-read path to
+# fail open on — only the enable predicate and the JSON shape.
+style_default_home="$(make_home writing-style-default)"
+assert_command_output \
+    "writing-style pointer is absent by default" \
+    "nested" \
+    "" \
+    "<superpowers-writing-style>" \
+    "$style_default_home" \
+    CLAUDE_PLUGIN_ROOT="$REPO_ROOT" \
+    bash "$HOOK_UNDER_TEST"
+
+# Enabled: assert BOTH blocks, in order. Asserting only the style block would pass
+# a hook that replaced the bootstrap instead of appending to it.
+style_on_index=0
+for value in 1 true yes on TRUE On; do
+    style_on_index=$((style_on_index + 1))
+    style_on_home="$(make_home "writing-style-on-$style_on_index")"
+    assert_context_matches \
+        "both blocks present, in order, for SUPERPOWERS_WRITING_STYLE=$value" \
+        '^<superpowers-bootstrap>[\s\S]*</superpowers-bootstrap>\n<superpowers-writing-style>[\s\S]*writing-clearly-and-concisely[\s\S]*</superpowers-writing-style>$' \
+        "$style_on_home" \
+        CLAUDE_PLUGIN_ROOT="$REPO_ROOT" \
+        SUPERPOWERS_WRITING_STYLE="$value" \
+        bash "$HOOK_UNDER_TEST"
+done
+
+style_off_index=0
+for value in 0 false maybe ""; do
+    style_off_index=$((style_off_index + 1))
+    style_off_home="$(make_home "writing-style-off-$style_off_index")"
+    assert_command_output \
+        "writing-style pointer is absent for SUPERPOWERS_WRITING_STYLE='$value'" \
+        "nested" \
+        "" \
+        "<superpowers-writing-style>" \
+        "$style_off_home" \
+        CLAUDE_PLUGIN_ROOT="$REPO_ROOT" \
+        SUPERPOWERS_WRITING_STYLE="$value" \
+        bash "$HOOK_UNDER_TEST"
+done
+
+# With the option off, the payload is the bootstrap and nothing else. This is the
+# regression guard for "the default session is unchanged".
+style_unchanged_home="$(make_home writing-style-unchanged)"
+assert_context_matches \
+    "disabled payload contains the bootstrap and nothing after it" \
+    '^<superpowers-bootstrap>[\s\S]*</superpowers-bootstrap>$' \
+    "$style_unchanged_home" \
+    CLAUDE_PLUGIN_ROOT="$REPO_ROOT" \
+    bash "$HOOK_UNDER_TEST"
+
+# The skill name lives in both the hook constant and the skills tree, so a rename
+# can break the pointer silently. `|| true` is required: with pipefail set, the
+# grep finds nothing during the RED run and would abort the suite before it
+# reports.
+pointer_ref="$(grep -o 'superpowers:[a-z][a-z-]*' "$HOOK_UNDER_TEST" | grep -v 'using-superpowers' | head -1 || true)"
+pointer_skill="${pointer_ref#superpowers:}"
+if [[ -n "$pointer_skill" && -d "$REPO_ROOT/skills/$pointer_skill" ]]; then
+    pass "writing-style pointer names an existing skill ($pointer_skill)"
+else
+    fail "writing-style pointer names an existing skill (got '${pointer_skill:-<none>}')"
+fi
 
 if [[ "$FAILURES" -gt 0 ]]; then
     echo "STATUS: FAILED ($FAILURES failure(s))"

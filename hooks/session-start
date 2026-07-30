@@ -26,6 +26,16 @@ escape_for_json() {
 using_superpowers_escaped=$(escape_for_json "$using_superpowers_content")
 session_context="<superpowers-bootstrap>\nThe Superpowers skills library is installed. Your 'superpowers:using-superpowers' skill is inlined below; load any other skill with the 'Skill' tool.\n\n${using_superpowers_escaped}\n</superpowers-bootstrap>"
 
+# Optional writing-style routing pointer, off unless SUPERPOWERS_WRITING_STYLE
+# names a truthy value. The pointer is a constant, so this reads no file and adds
+# no failure path: an unset, empty, or unrecognized value simply emits nothing.
+case "$(printf '%s' "${SUPERPOWERS_WRITING_STYLE:-}" | tr '[:upper:]' '[:lower:]')" in
+    1|true|yes|on)
+        writing_style_pointer="Prose you author for a human to read — a spec, a plan, a PR description, a report — goes through superpowers:writing-clearly-and-concisely. Invoke it before writing, not as a cleanup pass afterward."
+        session_context="${session_context}\n<superpowers-writing-style>\n$(escape_for_json "$writing_style_pointer")\n</superpowers-writing-style>"
+        ;;
+esac
+
 # Output context injection as JSON in Claude Code's format
 # (hookSpecificOutput.additionalContext). This fork targets Claude Code only.
 #
