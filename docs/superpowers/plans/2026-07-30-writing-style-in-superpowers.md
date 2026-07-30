@@ -824,16 +824,21 @@ EOF
 
 - [ ] **Step 3: Run 45 dispatches**
 
+**This task runs in the controller session, not in an implementer subagent** — it
+dispatches 45 agents, and nested dispatch is not reliably available to a subagent.
+It is measurement, not implementation.
+
 For each arm (A, B, C) × prompt (1, 2, 3) × rep (1-5), dispatch one `Agent`
 (`subagent_type: general-purpose`) whose prompt is the arm prefix file's contents
-followed by the prompt file's contents, and save its output:
+followed by the prompt file's contents, plus this instruction:
 
-```
-/tmp/microtest/<arm>-<prompt>-<rep>.md
-```
+> Write your answer to `/tmp/microtest/<arm>-<prompt>-<rep>.md` and reply with the
+> single word `done`. Do not print the prose in your reply.
 
-For arm A, send the prompt alone. Dispatch the reps for one arm+prompt cell
-concurrently; do not reuse a subagent across cells, and do not let any dispatch see
+Having each agent write its own file keeps 45 prose samples out of the controller's
+context, which is the whole reason artifacts move by file in this skill. For arm A,
+send the prompt with no prefix. Dispatch the five reps of one arm+prompt cell
+concurrently; never reuse an agent across cells, and never let one dispatch see
 another's output.
 
 ```bash
