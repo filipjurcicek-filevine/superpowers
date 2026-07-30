@@ -161,6 +161,50 @@ for a `Skill` invocation in the session log, not for an announcement string. So
 rewording a skill's prose does not move these evals; changing whether an agent
 loads the skill does.
 
+## Measuring what prompt text costs
+
+`scripts/analyze-prompt-cost.py <results-dir>` sizes the injected context across
+finished runs — always-on payloads, per-skill bodies, turns, peak context, tool
+mix, and redundancy. It groups by arm (fork / upstream / baseline, inferred from
+each run's skill base directory), so an A/B reads directly off it. `--json` for
+machine consumption, `--turns N` to change the re-read multiplier.
+
+```bash
+python3 scripts/analyze-prompt-cost.py evals/results --glob 'tdd-holds-*'
+```
+
+Read it with two facts in mind, both of which produced a wrong answer first time:
+
+- **Cost is context size multiplied by turn count.** A `description` character is
+  in context from turn 1 of every session; a SKILL.md body character only after
+  invocation. On a ~25-turn run that makes description text worth roughly 25x body
+  text, which is why compressing bodies for cost is a waste (see
+  `skills/writing-skills/SKILL.md`, Progressive Disclosure).
+- **`prompt_tokens` reads as ~2** in these transcripts because nearly everything
+  is cached. Context size lives in `cache_read_input_tokens +
+  cache_creation_input_tokens`. Optimising off `prompt_tokens` concludes the
+  prompts are free.
+
+Measured this way on a fork-vs-upstream A/B, the always-on total splits into three
+movable parts — and the fork's biggest win is not where prose review would look:
+
+| Source | fork | upstream |
+|---|---|---|
+| skill listing (all installed descriptions) | 6,688 ch | 6,879 ch |
+| SessionStart bootstrap (`using-superpowers`) | 2,026 ch | 3,276 ch |
+| agent listing (this fork adds 4 definitions) | 3,327 ch | 2,304 ch |
+
+The bootstrap compression saves ~1,250 characters; the four effort-pinned agent
+definitions cost ~1,023 back. Net ~−418 ch (~−104 tok, ~2,600 token-reads/run).
+That agent-listing cost is the previously-unpriced side of the roles-as-agent-
+definitions decision — worth knowing, not necessarily worth reversing.
+
+Tests: `tests/prompt-cost/test-analyze-prompt-cost.sh` (synthetic fixtures with
+known-correct answers; no API calls).
+
+Related: `tests/claude-code/analyze-token-usage.py` attributes tokens to
+individual subagents inside one transcript. Different question, no overlap.
+
 ## Baseline records
 
 `docs/skill-tests/<skill-name>/` holds the RED-phase transcripts and pressure
