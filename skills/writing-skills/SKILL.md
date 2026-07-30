@@ -206,6 +206,30 @@ The first two tiers are paid for whether or not the skill is ever used. Get the
 real numbers rather than estimating: `claude plugin details <plugin>` prints
 always-on and on-invoke cost per component.
 
+**A description character costs ~25x a body character, so trim descriptions
+first.** Both sit in context once present and are re-read on every subsequent
+turn — but the description is there from turn 1 of every session whether the skill
+is invoked or not, while the body costs nothing until invocation. Measured on this
+library: the 15 descriptions total ~1.6k characters injected into every session,
+and a typical run re-reads its context ~25 times. Cutting 100 characters of
+description therefore removes ~600 token-reads per run; cutting 100 characters of
+body removes that only in the runs that load it.
+
+Measured against the same runs, body length is a rounding error: a 21-33%
+compression of two skills' bodies changed total run cost by less than the
+run-to-run noise, because the body was ~0.08% of the tokens consumed. Cost lives
+in context size multiplied by turn count, not in prose length. **Do not compress a
+body for cost reasons** — compress it when it is repetitive (above), and leave it
+alone otherwise.
+
+**What a description may not give up to get shorter:** the triggering conditions
+and the symptom keywords an agent would search for. Provenance is the cheap thing
+to cut — "invoked by X and Y at their review points" tells an agent nothing about
+when to reach for the skill, and callers that invoke it by name do not read the
+listing to find it. When every remaining clause is a trigger or a keyword, the
+description is done; shaving another ten characters risks a triggering regression
+worth far more than the tokens.
+
 **Instruction density beats brevity.** A long SKILL.md is not the failure mode —
 a *repetitive* one is. Stating the same rule as a principle, then a prohibition
 list, then a rationalization table, then a red-flags list teaches the reader that
