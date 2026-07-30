@@ -17,6 +17,7 @@ codebase before acting on it.
 3. **Verify** each item against the codebase as it actually is.
 4. **Evaluate** whether it is technically sound for this codebase.
 5. **Respond** with a technical acknowledgment or reasoned pushback.
+   **REQUIRED SUB-SKILL:** Use superpowers:writing-clearly-and-concisely.
 6. **Implement** one item at a time, testing each.
 
 ## Unclear Items Block the Whole Batch

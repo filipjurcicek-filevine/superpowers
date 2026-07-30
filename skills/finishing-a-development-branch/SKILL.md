@@ -140,7 +140,8 @@ git push -u origin <feature-branch>
 Then create the pull/merge request against <base-branch> with the forge's
 tooling — its CLI if one is available, or the creation URL most forges
 print when you push — following the repo's PR template and conventions if
-present, and report the URL to the user.
+present, and report the URL to the user. **REQUIRED SUB-SKILL:** Use
+superpowers:writing-clearly-and-concisely for the PR description.
 
 Keep the worktree — the user iterates on PR feedback there. Do not call
 `ExitWorktree`; leaving the workspace is theirs to ask for.

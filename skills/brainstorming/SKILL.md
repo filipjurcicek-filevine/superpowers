@@ -116,9 +116,8 @@ layouts?" is visual — show it.
 ## After the Design
 
 **Write the spec** to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` (user
-preferences for location override this). If a `writing-clearly-and-concisely`
-skill appears in your skill list, use it — the namespace it ships under varies by
-setup, so match on the name. Commit the spec.
+preferences for location override this). **REQUIRED SUB-SKILL:** Use
+superpowers:writing-clearly-and-concisely. Commit the spec.
 
 **Self-review it** with fresh eyes:
 

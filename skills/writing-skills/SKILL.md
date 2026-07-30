@@ -83,6 +83,10 @@ skills/
   - **NEVER summarize the skill's process or workflow** (see SDO section for why)
   - Keep under 500 characters if possible
 
+**REQUIRED SUB-SKILL:** Use superpowers:writing-clearly-and-concisely for the
+prose itself. It governs the sentences; Match the Form to the Failure below
+governs which sections exist.
+
 **Body:** there is no fixed section list. Write the sections this skill's failure
 modes need and nothing else. Only two are load-bearing everywhere:
 

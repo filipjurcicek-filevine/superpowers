@@ -63,7 +63,8 @@ not to flag.
 **Surfacing findings to the user.** When the user asked for the review, relay the
 findings — the reviewer's report goes to you, not to them. If the host renders
 typed findings via `ReportFindings`, use it instead of pasting the report, and
-rank by severity.
+rank by severity. **REQUIRED SUB-SKILL:** Use
+superpowers:writing-clearly-and-concisely for the relay.
 
 In the VS Code extension, write each location as a markdown link rather than bare
 text — `[auth.ts:42](src/auth.ts#L42)`, path relative to the **workspace** root —
