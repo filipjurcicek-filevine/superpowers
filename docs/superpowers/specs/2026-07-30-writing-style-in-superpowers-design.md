@@ -2,30 +2,38 @@
 
 ## Background
 
-Skills in this library produce prose a human reads: specs, plans, commit messages,
-PR descriptions, review summaries. Nothing in the library says how that prose
-should read. One skill gestures at guidance it does not ship —
-`brainstorming/SKILL.md:119` says "If a `writing-clearly-and-concisely` skill
-appears in your skill list, use it — the namespace it ships under varies by
-setup, so match on the name." That hedge exists because the skill was external to
-the plugin.
+Skills in this library author prose a human reads: specs, plans, PR descriptions,
+review summaries. Nothing in the library says how that prose should read. One skill
+gestures at guidance it does not ship — `brainstorming/SKILL.md:119` says "If a
+`writing-clearly-and-concisely` skill appears in your skill list, use it — the
+namespace it ships under varies by setup, so match on the name." That hedge exists
+because the skill was external to the plugin.
 
-This change ships the style guidance in-tree, wires every prose-producing skill to
-it, and adds an option that makes it resident in every session.
+This change ships the style guidance in-tree, wires the six skills that author
+such prose to it, and adds an option that makes the routing rule resident in every
+session.
+
+**The wiring criterion:** a skill gets a reference when it instructs the agent to
+*author* prose a human will read. Two things are exempt. Conversational turns are
+not authored artifacts. Fixed quoted strings the skills mandate — the consent
+question at `using-git-worktrees/SKILL.md:51`, the review-gate sentence at
+`brainstorming/SKILL.md:140` — are already-decided wording, and a style skill must
+not license an agent to rewrite them. That exemption is load-bearing; see
+"Scope of the skill" below.
 
 The content starts from an existing personal skill at
-`~/Projects/scratch/.claude/skills/writing-clearly-and-concisely/` (6 files, 168KB,
-~42k tokens fully loaded). A review of that skill found two files that should not
-ship and ~35 dead lines in its `SKILL.md`; the file set below is the reviewed
-result, not a copy. The review findings are recorded in "Content decisions" so a
-later reader knows why four of the six files are absent.
+`~/Projects/scratch/.claude/skills/writing-clearly-and-concisely/` (6 files, 168KB).
+A review of that skill found two files that should not ship, two that buy nothing
+here, and one that needs distilling. The file set below is that reviewed result,
+not a copy; "Content decisions" records why four of the six source files are
+absent, so a later reader does not restore them.
 
 ## In scope
 
 1. New plugin skill `skills/writing-clearly-and-concisely/` — three files.
 2. `SUPERPOWERS_WRITING_STYLE` option in `hooks/session-start`.
-3. References from seven skills to the new skill.
-4. Four new cases in `tests/hooks/test-session-start.sh`.
+3. References from six skills to the new skill.
+4. New cases in `tests/hooks/test-session-start.sh`.
 5. README, `CLAUDE.md`, `RELEASE-NOTES.md`, version bump.
 
 ## Out of scope
@@ -34,10 +42,18 @@ later reader knows why four of the six files are absent.
   It becomes redundant once the plugin ships one, and two similarly-named skills in
   one list is a routing hazard. It lives in a different repository; flag it after
   this work lands.
-- **Eval pressure scenarios.** See "Testing obligation" for what is and is not
-  verified here.
-- **A style pass over the existing 15 skills.** This change gives future prose a
-  standard. Rewriting the library to meet it is separate work.
+- **A user-facing report step in `subagent-driven-development`.** Its Finish step
+  delegates to `finishing-a-development-branch` (`SKILL.md:368–371`) and authors no
+  report of its own. Wiring it would mean adding a step, which this change does not
+  do.
+- **Commit messages.** Nothing in the library instructs an agent to author one:
+  `grep -rn 'commit message' skills/ agents/` returns only example content in
+  `writing-skills/anthropic-best-practices.md` and a passing mention at
+  `agents/code-reviewer.md:37`. Commit-message wording is the harness's and
+  `CLAUDE.md`'s business, not this library's.
+- **Eval pressure scenarios**, beyond the micro-test obligation below.
+- **A style pass over the existing 15 skills.** This gives future prose a standard.
+  Rewriting the library to meet it is separate work.
 
 ## Content decisions
 
@@ -45,44 +61,40 @@ later reader knows why four of the six files are absent.
 
 ```
 skills/writing-clearly-and-concisely/
-  SKILL.md                                        ~50 lines / ~2KB
+  SKILL.md
   elements-of-style/
     03-elementary-principles-of-composition.md    34KB, verbatim Strunk 1918
-  ai-writing-tells.md                             ~10KB, distilled
+  ai-writing-tells.md                             ≤14KB, distilled
 ```
-
-Fully loaded: ~11.5k tokens, down from ~42k for the source skill.
 
 ### What the source skill ships that this one does not
 
 **`05-words-and-expressions-commonly-misused.md` (22KB) — dropped.** It carries
-prescriptions that are obsolete and in one case conflicts with the harness. Its
-entry for *they* instructs the writer away from singular *they*, which Claude Code
+prescriptions that are obsolete, and one that conflicts with the harness. Its entry
+for *they* instructs the writer away from singular *they*, which Claude Code
 requires when a person's pronouns are unstated. It also prescribes *shall* by
-grammatical person, calls split infinitives "in disfavor," treats *data* as
-plural only, rules *different than* "not permissible", forbids *contact* and
-*feature* as verbs, and includes entries for **Student Body**, **Thanking You in
-Advance**, and **One hundred and one**. A file loaded to shape a commit message
-must not hand the model 1918 usage law.
+grammatical person, calls split infinitives "in disfavor," treats *data* as plural
+only, rules *different than* "not permissible," forbids *contact* and *feature* as
+verbs, and carries entries for **Student Body**, **Thanking You in Advance**, and
+**One hundred and one**. A file loaded to shape a PR description must not hand the
+model 1918 usage law.
 
-Twelve of its entries remain live: the needless-word set (*case*,
-*character*, *factor*, *nature*, *system*, *respective*), *literally*,
-*interesting*, "one of the most", and the intensifiers *very*, *certainly*, *so*.
-Those move into the `SKILL.md` kill list, which is eight lines rather than 5.6k
-tokens.
+Twelve of its entries remain live and move into the `SKILL.md` kill list, each
+keeping the *condition* that makes it a defect rather than becoming a banned token.
+See "Kill-list semantics."
 
-**`04-a-few-matters-of-form.md` (5KB) — dropped.** It is manuscript typography:
-blank lines after a title "if using ruled paper," syllabication for end-of-line
-word breaks, italics "indicated in manuscript by underscoring," and links to
-Gutenberg page scans. The source skill's routing table advertises it as "Headings,
-quotations, formatting," which is what would make an agent load it.
+**`04-a-few-matters-of-form.md` (5KB) — dropped.** Manuscript typography: blank
+lines after a title "if using ruled paper," syllabication for end-of-line word
+breaks, italics "indicated in manuscript by underscoring," links to Gutenberg page
+scans. The source skill's routing table advertises it as "Headings, quotations,
+formatting," which is what would make an agent load it.
 
 **`02-elementary-rules-of-usage.md` (12KB) — dropped.** Seven rules on possessive
-`'s`, the serial comma, parenthetic commas, comma splices, and dangling
-participles. Opus 5 follows all seven without instruction, so this is the fork's
-"don't restate the system prompt" rule one level down: ~3k tokens for no change in
-output. This is the least certain of the four drops — it is reasoned, not
-measured. Reverse it only for a concrete need to cite Strunk by rule number.
+`'s`, the serial comma, parenthetic commas, comma splices, and dangling participles.
+Opus 5 follows all seven without instruction, so this is the fork's "don't restate
+the system prompt" rule one level down. This is the least certain of the four drops
+— reasoned, not measured. Reverse it only for a concrete need to cite Strunk by
+rule number.
 
 **`01-introductory.md` (303 bytes) — dropped.** Three lines of preamble, no rules.
 
@@ -90,230 +102,333 @@ measured. Reverse it only for a concrete need to cite Strunk by rule number.
 
 | | Size | Sections |
 |---|---|---|
-| Applies to writing | 53KB | Regression to the Mean, Language and Grammar, Punctuation and Formatting, Communication Intended for the User |
+| Applies to authoring prose | 53KB | Regression to the Mean, Language and Grammar, Punctuation and Formatting, Communication Intended for the User |
 | Does not | 41KB | Markup (14KB), Citations (8KB), Discrepancies (5KB), detection intro (5KB), Ineffective Indicators (3KB), Signs of Human Writing, Notes, References |
 
-The 41KB is Wikipedia detection machinery: `citeturn` and `oaicite` artifacts,
-DOI and ISBN validity, UTM parameters, AFC draft templates, GPTZero's error rate,
-"age of text relative to ChatGPT launch."
+The 41KB is Wikipedia detection machinery: `citeturn` and `oaicite` artifacts, DOI
+and ISBN validity, UTM parameters, AFC draft templates, GPTZero's error rate, "age
+of text relative to ChatGPT launch."
 
-Two parts of the remainder are actively wrong for this use. The file is a
-detection guide and says so — "This list is *descriptive*, not *prescriptive*…
-some signs—particularly those involving punctuation and formatting—may not apply
-in a non-Wikipedia context." And its formatting section flags em dashes,
-boldface, and Markdown as AI tells. Claude Code output *is* terminal Markdown, and
-the skills in this library use bold and em dashes throughout, so an agent that
-loads that section mid-task will strip formatting the harness relies on.
+Two parts of the remainder are actively wrong for this use. The file is a detection
+guide and says so — "This list is *descriptive*, not *prescriptive*… some
+signs—particularly those involving punctuation and formatting—may not apply in a
+non-Wikipedia context." And its formatting section flags em dashes, boldface, and
+Markdown as AI tells. Claude Code output *is* terminal Markdown, and the skills in
+this library use bold and em dashes throughout, so an agent that loads that section
+mid-task will strip formatting the harness relies on.
 
 ### `ai-writing-tells.md` — distillation criteria
 
-The rewrite is a judgment-heavy editing job, so the selection rule is fixed here
-rather than left to the implementer.
+The retained ranges measure **46,730 bytes** in the source. Reaching ≤14KB is a
+73% cut, so the transform rules below are what produce it — not incidental
+trimming. The rules are fixed here because the edit is judgment-heavy.
 
-**Retain:**
+**Retain, as subsections:**
 
 - All of *Regression to the Mean* except "Leads treating Wikipedia lists or broad
   article titles as proper nouns."
 - All of *Language and Grammar*.
-- All of *Communication Intended for the User* — chatty asides, knowledge-cutoff
-  disclaimers, prompt refusals leaking into output, placeholder text.
 - From *Punctuation and Formatting*: title case in headings, boldface density,
   inline-header vertical lists, emoji decoration.
+- From *Communication Intended for the User*: knowledge-cutoff disclaimers, prompt
+  refusals leaking into output, placeholder and phrasal-template text.
 
-**Drop:** everything in the 41KB column above, plus the em-dash and
-curly-quotation-mark subsections and "Subject lines."
+**Drop:** everything in the 41KB column above; the em-dash and
+curly-quotation-mark subsections; "Subject lines"; and the *collaborative
+communication* subsection. That last one's watch list is *Would you like…*, *let me
+know*, *Certainly!* — phrases whose defect on Wikipedia is appearing inside an
+article, not existing. Two of them are mandated verbatim by this library
+(`using-git-worktrees/SKILL.md:51`, `brainstorming/SKILL.md:140`), and
+`brainstorming` is one of the wired call sites. Shipping that list prescriptively
+would have the skill contradict the skills that invoke it.
 
-**Transform:**
+**Transform, per retained subsection:**
 
-- Reframe each retained item from "this is a sign the text is AI-generated" to
-  "do not write this."
-- Keep every **Words to watch** list verbatim. They are the actionable payload.
-- Cut each Wikipedia example gallery to a single example.
-- Drop all Wikipedia-internal links and footnote markers.
+1. Keep its **Words to watch** list, verbatim except that footnote markers
+   (`[^a]`, `[^8]`) are dropped — two such lists carry them, so "verbatim" without
+   this exception is unsatisfiable.
+2. Add one sentence stating the rule as a prohibition: what not to write, in the
+   imperative.
+3. Delete everything else: the explanatory paragraphs, every example gallery, all
+   Wikipedia links, all footnotes.
 
-**Target:** 10–12KB. A result above 14KB means the criteria were not applied.
+A watch list plus one sentence per subsection is the whole file. A result above
+14KB means step 3 was not applied.
+
+### Provenance and licensing
+
+The personal source directory is untracked and carries no revision metadata, so it
+is not a reproducible input. The implementer records provenance from the upstream
+sources at copy time:
+
+- **Strunk.** *The Elements of Style*, William Strunk Jr., 1918 — public domain.
+  The local text derives from Project Gutenberg ebook #37134 (its sibling file `04`
+  carries `gutenberg.org/files/37134` links). Name that in a header comment in
+  `elements-of-style/03-elementary-principles-of-composition.md`.
+- **`ai-writing-tells.md`.** Adapted from the Wikipedia project page
+  "Wikipedia:Signs of AI writing," licensed **CC BY-SA 4.0**. Its header carries:
+  the page title, the permalink of the revision current at retrieval, the retrieval
+  date, the license name and URL, and a change notice — "adapted: reframed as
+  prohibitions; examples, explanatory prose, and Wikipedia-process sections
+  removed." CC BY-SA requires attribution and share-alike, so this file stays CC
+  BY-SA even though `.claude-plugin/plugin.json:11` declares the package MIT. State
+  that boundary in the file header and in the README section: one file under a
+  different license does not relicense the package, and the file's own license
+  travels with it when it is loaded alone.
 
 ### `SKILL.md` — content
 
-Frontmatter: `name: writing-clearly-and-concisely`, and a `description` that
-states triggering conditions only, per `writing-skills` ("Use when writing prose a
-human will read — spec, plan, commit message, PR description, report, error
-message, or UI text").
+**Frontmatter.** `name: writing-clearly-and-concisely`. The `description` is the
+expensive part of this skill: `writing-skills/SKILL.md:209–216` measures a
+description character at ~25x a body character, because it sits in every session
+from turn 1 whether the skill is invoked or not, across ~25 context re-reads per
+run. The library's 15 descriptions total ~1.6k characters; this is the 16th. So the
+description carries triggering conditions and symptom keywords only — no
+provenance, no mention of Strunk or of which skills call it — and stays at or under
+~150 characters.
 
-Body, in order:
+**Body,** in order:
 
-1. **Opening, two sentences.** What this is; that the rules below are the ones
+1. **Opening, two sentences.** What this is, and that the rules below are the ones
    that fight the model's defaults. No `## Overview` heading — banned by
    `writing-skills`, and the title already says it.
-2. **Six operative rules, one line of before → after each.** Active voice;
+2. **Scope.** See "Scope of the skill" below. Three lines.
+3. **Six operative rules, one line of before → after each.** Active voice;
    positive form; definite, specific, concrete language; omit needless words; keep
    related words together; emphatic word last. Each example rewrites a sentence of
-   the kind this library actually produces, not Strunk's 1918 examples. For
-   instance, under concrete language: "improves performance" → "cuts p99 latency
-   from 400ms to 90ms."
-3. **Kill list.** Puffery (*pivotal*, *crucial*, *vital*, *testament*, *enduring
-   legacy*, *robust*, *seamless*, *groundbreaking*, *cutting-edge*); empty `-ing`
-   tails (*ensuring reliability*, *showcasing*, *highlighting*, *underscoring*);
-   AI vocabulary (*delve*, *leverage*, *multifaceted*, *foster*, *realm*,
-   *tapestry*, *landscape*, *navigate*); the twelve live entries salvaged from
-   `05`.
-4. **One routing line** to the two reference files, naming when each is worth
+   the kind this library actually produces, not Strunk's 1918 examples — under
+   concrete language, "improves performance" → "cuts p99 latency from 400ms to
+   90ms."
+4. **Kill list.** See "Kill-list semantics."
+5. **One routing line** to the two reference files, naming when each is worth
    loading.
-5. **Attribution line.** Strunk 1918 is public domain; `ai-writing-tells.md`
-   derives from the Wikipedia article "Signs of AI writing" and stays under CC
-   BY-SA 4.0, which the plugin's MIT license does not cover. `ai-writing-tells.md`
-   carries the same attribution in its own header, because a file loaded on its own
-   must carry its license with it.
+6. **Attribution line** for the two reference files.
 
-**No `## When to Use This Skill` section.** The frontmatter description does the
-routing, and the body loads only after routing succeeded. **No `## Bottom Line`,
-no closing recap** — both banned by `writing-skills`. **No "Limited Context
-Strategy"** — the source skill prescribes a subagent round-trip to avoid loading a
-34KB file, which is rarely the right trade at 1M context, and the plan-time
-decision belongs to `dispatching-parallel-agents` if it belongs anywhere.
+**Omit:** `## When to Use This Skill` (the frontmatter routes; the body loads after
+routing succeeded), `## Bottom Line`, any closing recap — the last two are banned
+by `writing-skills`. Omit the source skill's "Limited Context Strategy," which
+prescribes a subagent round-trip to avoid loading a 34KB file; that is rarely the
+right trade at 1M context, and the dispatch decision belongs to
+`dispatching-parallel-agents` if anywhere.
 
-Each rule appears once, in one form. `SKILL.md` must not restate a rule that
-`03-elementary-principles-of-composition.md` states, beyond the one-line
-summary plus example that makes it actionable without a load.
+Each rule appears once, in one form. `SKILL.md` restates nothing from
+`03-elementary-principles-of-composition.md` beyond the one-line summary plus
+example that makes the rule actionable without a load.
 
-### Length is a constraint, not a preference
+### Scope of the skill
 
-`SKILL.md` stays under 60 lines. When the option below is enabled it becomes the
-second always-resident skill in every session, so its length is paid on every
-turn of every session. The README already carries this warning for
-`using-superpowers`; it now covers two files.
+The skill governs prose the agent **authors** for a human to read: a spec, a plan,
+a PR description, a review summary, an error message, UI text. It does not govern
+conversational turns, and it does not license rewriting a quoted string another
+skill mandates. `SKILL.md` states this in three lines, because the alternative is
+an agent that "improves" the consent question at `using-git-worktrees/SKILL.md:51`
+or the review-gate sentence at `brainstorming/SKILL.md:140` — both fixed wording,
+both reachable from a wired call site.
+
+### Kill-list semantics
+
+Each entry is a word plus the condition that makes it a defect, never a banned
+token. *Case* is a defect when it means "instance of a thing occurring" ("in the
+case of a timeout" → "on timeout"), not in "test case." *So* is a defect as an
+intensifier ("so much faster"), not as a conjunction. An implementer who reduces
+these to a word list produces a skill that mangles technical prose.
+
+Three groups:
+
+- **Puffery:** *pivotal*, *crucial*, *vital*, *testament*, *enduring legacy*,
+  *robust*, *seamless*, *groundbreaking*, *cutting-edge*.
+- **Empty `-ing` tails:** *ensuring reliability*, *showcasing*, *highlighting*,
+  *underscoring* — the clause that adds a claim instead of a fact.
+- **AI vocabulary:** *delve*, *leverage*, *multifaceted*, *foster*, *realm*,
+  *tapestry*, *landscape*, *navigate*.
+
+Plus the twelve entries salvaged from `05`, each with its condition: the
+needless-word set (*case*, *character*, *factor*, *nature*, *system*,
+*respective*), *literally* propping up a metaphor, *interesting* as an
+announcement, "one of the most" opening a paragraph, and the intensifiers *very*,
+*certainly*, *so*.
+
+### Body length is not a cost lever
+
+`writing-skills/SKILL.md:220–224` measures this: compressing two skill bodies by
+21–33% moved total run cost by less than run-to-run noise, because the body was
+~0.08% of tokens consumed. **Do not compress this `SKILL.md` for cost.** The
+compression of the source skill is justified by *repetition* — it said "load `03`"
+three times, restated its own frontmatter as a body section, and carried two
+banned selling sections — which is the standing rule at
+`writing-skills/SKILL.md:232`. An earlier draft of this spec justified the same cut
+by token savings and set a 60-line cap; both are withdrawn. The tier convention
+still applies: aim under ~500 words of instruction, more only if every line is
+load-bearing.
 
 ## The option
 
-`SUPERPOWERS_WRITING_STYLE` gates one thing: whether `hooks/session-start` also
-inlines the skill. Default off.
+`SUPERPOWERS_WRITING_STYLE` gates one thing: whether `hooks/session-start` appends
+a routing pointer to the session context. Default off.
 
-**Enabled** when the value, lowercased, is `1`, `true`, `yes`, or `on`. Every
-other value, including unset and empty, is off.
+**Enabled** when the value, lowercased, is `1`, `true`, `yes`, or `on`. Every other
+value — unset, empty, `0`, `false`, anything else — is off.
 
-**When enabled,** the hook emits a second block after the existing bootstrap,
-using the same `escape_for_json` helper and the same single `printf`:
+**When enabled,** the hook appends a second block after the existing bootstrap,
+built from a string constant in the hook, escaped through the existing
+`escape_for_json` helper and emitted by the same single `printf`:
 
 ```
-<superpowers-bootstrap>…using-superpowers/SKILL.md…</superpowers-bootstrap>
 <superpowers-writing-style>
-Prose you write for a human to read follows the style below. …SKILL.md verbatim…
+Prose you author for a human to read — a spec, a plan, a PR description, a
+report — goes through superpowers:writing-clearly-and-concisely. Invoke it
+before writing, not as a cleanup pass afterward.
 </superpowers-writing-style>
 ```
 
-**It inlines `SKILL.md` verbatim rather than a purpose-built summary card.** A card
-would state the same rules a second time, and "say each rule once" is a fork
-invariant. The cost is that the always-on superpowers block roughly doubles when
-the option is on — which is why the length constraint above is load-bearing, and
-why the default is off.
+**It injects the routing rule, not the rules themselves.** ~35 words, against the
+~200-word bootstrap budget at `writing-skills/SKILL.md:200`. Three consequences,
+all deliberate:
 
-**Fail-open paths.** The hook runs under `set -euo pipefail`, and the existing
-`cat` of `using-superpowers/SKILL.md` uses `2>&1 || echo` to survive a read
-failure. The new read must be at least as safe:
+- **No rule is stated twice.** The rules live in the body, which costs nothing
+  until the skill is invoked, and "say each rule once" is a fork invariant.
+- **No "already resident, invoke anyway?" ambiguity.** The block is a pointer, so
+  invoking the skill is the only way its content ever loads.
+- **The option's claim is smaller than it looks.** It makes the routing rule
+  resident; it does not make the rules resident. An agent that ignores the pointer
+  gets no style guidance — the same failure mode `using-superpowers` already
+  carries for all 16 skills, which is why the six explicit call sites matter more
+  than the option does.
+
+**Fail-open paths.** The hook runs under `set -euo pipefail`. Because the pointer
+is a constant, the option adds no file read and therefore no new failure mode:
 
 | Condition | Behavior |
 |---|---|
-| Variable unset, empty, or unrecognized | No style block. Bootstrap unchanged. Exit 0. |
-| Enabled, `SKILL.md` missing or unreadable | No style block. Bootstrap unchanged. Exit 0. No error text in the payload. |
-| Enabled, `SKILL.md` readable | Both blocks. Valid JSON. Exit 0. |
+| Variable unset, empty, or unrecognized | No style block. Payload identical in structure to the current one. Exit 0. |
+| Enabled | Both blocks, one valid JSON object. Exit 0. |
 
-The variable is its own kill switch, so this hook adds no second one. Output stays
-a single valid JSON object in every case; a malformed payload would break session
-startup, which is worse than any drift it could prevent.
+The variable is its own kill switch, so this hook adds no second one. A malformed
+payload would break session startup, which is worse than any drift it could
+prevent, so the tests below assert JSON validity on every path.
 
 The option adds no hook registration. It rides the existing `SessionStart` entry in
-`hooks/hooks.json` and therefore its `startup|clear|compact` matcher, so the style
-block returns after a `/clear` and after a compaction, exactly as the bootstrap
-does.
+`hooks/hooks.json` and its `startup|clear|compact` matcher, so the pointer returns
+after a `/clear` and after a compaction, exactly as the bootstrap does.
+
+**The skill name appears in two places** — the hook constant and the skill
+directory — so a rename can silently break the pointer. A test asserts the named
+directory exists.
 
 ## Skill wiring
 
-The soft name-match in `brainstorming/SKILL.md:119` becomes a direct
-`superpowers:writing-clearly-and-concisely` reference — the namespace no longer
-varies, because the skill ships here.
+Every reference uses the repo's requirement-marker convention
+(`writing-skills/SKILL.md:268–271`), which marks an unmarked cross-reference as a
+defect because the reader cannot tell whether it is required:
 
-| Skill | Point in its flow | Form |
+```
+**REQUIRED SUB-SKILL:** Use superpowers:writing-clearly-and-concisely
+```
+
+All six are `REQUIRED SUB-SKILL`. The difference between call sites is where the
+marker attaches, not how binding it is — an advisory-versus-mandatory split would
+be a second, unstated rule.
+
+| Skill | Attaches to | Verified location |
 |---|---|---|
-| `brainstorming` | "Write the spec" | Direct reference, replaces the soft match |
-| `writing-plans` | Writing the plan document | Direct reference |
-| `finishing-a-development-branch` | Commit message, PR description | Direct reference |
-| `writing-skills` | Writing skill prose | Direct reference, cross-linked to "Match the Form to the Failure" |
-| `requesting-code-review` | The summary a human reads | One line |
-| `receiving-code-review` | The summary a human reads | One line |
-| `subagent-driven-development` | The final report to the user | One line |
+| `brainstorming` | "Write the spec" — replaces the soft name-match | `SKILL.md:119` |
+| `writing-plans` | Writing the plan document | plan-writing step |
+| `finishing-a-development-branch` | The PR description in Option 2 | `SKILL.md:140–143` |
+| `writing-skills` | Writing skill prose; cross-linked to "Match the Form to the Failure" | body |
+| `requesting-code-review` | Presenting the reviewer's findings to the user | `SKILL.md:64–70` |
+| `receiving-code-review` | Step 5, the acknowledgment or reasoned pushback | `SKILL.md:19` |
 
-The last three get one line, not a workflow step. Their prose is mostly
-agent-to-agent; a full style pass there costs more than it returns.
+`brainstorming:119` loses "the namespace it ships under varies by setup, so match on
+the name" — the namespace no longer varies, because the skill ships here.
 
-Every reference is additive — a clause naming the skill at the point prose gets
-written. No existing instruction is reworded, and no step is added to any
-sequence.
+Each reference attaches to an instruction that already exists. No step is added to
+any sequence, and no existing instruction changes meaning.
 
 ## Testing
 
 `tests/hooks/test-session-start.sh` already asserts payload shape through
-`assert_command_output` with `contains` and `not_contains` matchers, so these are
-new cases in the existing harness, not a new file:
+`assert_command_output` with `contains` and `not_contains` matchers and a Node JSON
+parse, so these are new cases in the existing harness, not a new file. The harness
+invokes the hook through `env -i PATH="$PATH" HOME="$home"`, which clears the
+environment, so every enabled case must pass `SUPERPOWERS_WRITING_STYLE` on that
+`env` line; `env -i` already guarantees the unset case.
 
-1. Variable unset → bootstrap present, `<superpowers-writing-style>` absent, valid JSON.
-2. `SUPERPOWERS_WRITING_STYLE=1` → both blocks present, valid JSON.
-3. `=0` and `=maybe` → treated as off.
-4. `=1` with `SKILL.md` unreadable → bootstrap intact, style block absent, exit 0,
-   valid JSON.
+| Case | Executions | Asserts |
+|---|---|---|
+| Disabled by default | unset | Bootstrap present, `<superpowers-writing-style>` absent, valid JSON |
+| Enabled | `1`, `true`, `yes`, `on`, `TRUE`, `On` | Both blocks present, valid JSON |
+| Not enabled | `0`, `false`, `maybe`, empty string | Style block absent, valid JSON |
+| Disabled payload unchanged | unset | `additionalContext` matches `^<superpowers-bootstrap>[\s\S]*</superpowers-bootstrap>$` — nothing appended |
+| Pointer names a real skill | n/a | The directory named in the hook constant exists |
 
-Case 4 is the one that matters. It is the fail-open path, and it is the only case
-where a bug wedges every session rather than degrading one.
+The fourth case replaces a "byte-identical to the current output" check that an
+earlier draft specified: the harness has no `diff`, `cmp`, or snapshot helper, and
+the old hook cannot be re-run from history because it derives its plugin root from
+its own location. Asserting that the disabled payload contains exactly the
+bootstrap and nothing after it is what "unchanged" means here, and it is checkable
+in the harness as it stands.
 
-The harness invokes the hook through `env -i PATH="$PATH" HOME="$home"`, which
-clears the environment, so cases 2–4 must pass `SUPERPOWERS_WRITING_STYLE` on that
-`env` line. Case 1 needs no change beyond the assertion: `env -i` already
-guarantees the variable is unset.
+### Micro-test obligation
 
-### Testing obligation
+`CLAUDE.md` requires micro-testing skill wording against a no-guidance control, 5+
+reps, every flagged match read by hand. This change owes that on one question:
+whether the compressed `SKILL.md` produces prose as good as the source skill's
+longer form.
 
-`CLAUDE.md` requires micro-testing skill wording against a no-guidance control,
-5+ reps, with every flagged match read by hand. This change owes that on one
-thing: whether the compressed `SKILL.md` produces prose as good as the source
-skill's longer form. The compression is reasoned from measured file contents, not
-from behavior.
+- **Arms:** no-guidance control; the source skill's `SKILL.md` verbatim; the
+  compressed `SKILL.md`.
+- **Prompts:** three, one per output kind this library produces — a spec paragraph
+  describing a design decision, a PR description for a two-commit change, a review
+  summary of three findings.
+- **Reps:** 5 per arm per prompt.
+- **Flagged match**, counted by hand per rep: a kill-list hit in its defect
+  condition; a passive construction where an actor exists; a hedge that adds no
+  information; a puffery adjective.
+- **Bar:** the compressed arm's flagged-match count is at or below the source arm's
+  on every prompt, and both are clearly below the control. A compressed arm that
+  regresses against the source means the cut removed something load-bearing;
+  restore it rather than shipping the shorter file.
 
-The seven wiring references are additive clauses, not changes to discipline
-scaffolding, so they carry no pressure-scenario obligation. State this honestly in
-the commit message; do not claim eval verification that did not happen.
+The six wiring references are additive markers on existing instructions, not
+changes to discipline scaffolding, so they carry no pressure-scenario obligation.
+Say so in the commit message; claim no eval verification that did not happen.
 
 ## Documentation
 
 | File | Change |
 |---|---|
-| `README.md:175` | "**15 skills**" → "**16 skills**". The count is a manifest-sanity check, so it must move. |
-| `README.md` "Optional capabilities" | A row: `SUPERPOWERS_WRITING_STYLE=1` → inlines the style skill into every session. |
-| `README.md` SessionStart section | Note that with the option on, a second skill's full text is always resident, and that the length warning now covers both files. |
-| `README.md` | New section "Writing style (optional)", parallel to "Codex cross-review (optional)" and "Native task management (optional)". |
-| `CLAUDE.md` | One line under Fork Invariants: the style content ships in-tree, the option gates injection only, and the skill's length is a standing constraint. |
+| `README.md:175` | "**15 skills**" → "**16 skills**". The count is a manifest-sanity check. |
+| `README.md:194–197` | Optional-capabilities row: `SUPERPOWERS_WRITING_STYLE=1` → a routing pointer to the style skill in every session. |
+| `README.md:213–229` | SessionStart section: with the option on, a ~35-word pointer joins the bootstrap. Note explicitly that the skill *body* is not resident, so the "always-resident" warning still names one file. |
+| `README.md` | New section "Writing style (optional)", parallel to "Codex cross-review (optional)" and "Native task management (optional)". States the CC BY-SA boundary. |
+| `CLAUDE.md` | One line under Fork Invariants: the style content ships in-tree, the option gates a routing pointer only, and the injected block never restates the rules. |
 | `RELEASE-NOTES.md` | Entry for the release. |
-| `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` | `6.2.1-cc.2` → `6.2.2-cc.1` via `scripts/bump-version.sh`. |
+| Version | The tree is at `6.2.1-cc.3` (`bf6c653`). Release this as `6.2.1-cc.4` via `scripts/bump-version.sh`. The leading `6.2.1` stays: per `README.md:147–149` it names the upstream base, and nothing here adopts a new upstream. |
 
 ## Commit plan
 
 One concern per commit, in dependency order:
 
 1. Add the skill (three files).
-2. Add the option to `hooks/session-start` plus its four tests.
-3. Wire the seven skill references.
+2. Add the option to `hooks/session-start` plus its tests.
+3. Wire the six skill references.
 4. Documentation and version bump.
 
-Commit 2 depends on commit 1: the hook reads a file that must exist, and its
-fail-open test asserts behavior when that file is unreadable.
+Commit 2 depends on commit 1: its skill-name test asserts the directory exists.
 
 ## Verification
 
 - `claude plugin validate .` passes.
-- `tests/hooks/test-session-start.sh` passes, all cases.
-- `bash hooks/session-start` with the variable unset produces a payload
-  byte-identical to the current one.
+- `tests/hooks/test-session-start.sh` passes, every execution in the table.
 - `claude plugin details superpowers@superpowers-cc` reports 16 skills, 4 agents,
-  2 hooks.
-- `SKILL.md` is under 60 lines; `ai-writing-tells.md` is under 14KB.
-- `grep -rn "writing-clearly-and-concisely" skills/` returns the seven wired call
-  sites and the skill itself — no remaining "varies by setup" hedge.
+  2 hooks, and the on-invoke and always-on numbers for the new skill.
+- `wc -c` on the new `description` is at or under ~150.
+- `wc -c ai-writing-tells.md` is at or under 14336.
+- `ai-writing-tells.md` header carries the Wikipedia permalink, retrieval date, CC
+  BY-SA 4.0 notice, and change notice.
+- `grep -rn "writing-clearly-and-concisely" skills/` returns the six wired call
+  sites, each with a `REQUIRED SUB-SKILL` marker, plus the skill itself — and no
+  remaining "varies by setup" hedge.
+- `grep -rn "writing-clearly-and-concisely" hooks/` returns the pointer constant,
+  and that directory exists.
 - No file in the skill directory is unreferenced by `SKILL.md`.
