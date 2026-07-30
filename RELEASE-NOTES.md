@@ -1,5 +1,80 @@
 # Superpowers Release Notes
 
+## v6.2.1-cc.5 (2026-07-30)
+
+Drift against Claude Code 2.1.220, plus the sweep the v6.2.0 compression campaign
+never reached.
+
+### Native tasks are the task surface
+
+`TodoWrite` is not in the tool surface when `CLAUDE_CODE_ENABLE_TASKS` is set, so
+six call sites instructed a tool that cannot be called: the fork invariant's tool
+list, SDD's ledger paragraph ("use it alongside `TodoWrite`") and its
+`TaskCreate` block (written as a conditional upgrade over todos), `using-superpowers`,
+`executing-plans`, and `brainstorming`. Tracking is now `TaskCreate`/`TaskUpdate`
+unconditionally, and the flag moves from README's optional-capabilities table to a
+required setting. The ledger keeps its primacy for the reason it always had: it
+survives context summarization and session restart, which a task list does not.
+
+### The effort gate stops blocking read-only agents
+
+`pre-agent-effort-pin` matched the text `.superpowers/sdd/` anywhere in a dispatch
+prompt. It therefore blocked an `Explore` agent whose prompt named
+`.superpowers/sdd/*.diff` as a path to **exclude** from its search — a false
+positive in a hook whose own rule is to match narrowly enough that one is close to
+impossible. The gate now requires a path through a plan directory that exists,
+`.superpowers/sdd/<plan>/`, which every real dispatch has (`sdd-workspace` creates
+it before any agent is called) and which a bare mention, a glob, or an unknown plan
+name cannot produce. Seven new assertions, including the observed prompt verbatim;
+all three of the new allow-cases exit 2 against the previous hook.
+
+### Plan mode has a branch for already being in it
+
+`using-superpowers` said not to *enter* plan mode inside the Superpowers flow and
+said nothing about a turn that *starts* there — where the harness's own
+Explore→Plan→plan-file→`ExitPlanMode` sequence competes with brainstorming's spec
+and writing-plans' plan, with no ruling on which governs. The section is now a
+conditional on that predicate and names both tools.
+
+### Capabilities added since the Opus 5 retune
+
+- `dispatching-parallel-agents` covers background dispatch: a pending agent has no
+  result to report, `SendMessage` continues one with its context intact, and
+  `run_in_background: false` is the vehicle when the result gates the next line.
+- `condition-based-waiting` separates waiting inside a test suite from the agent
+  waiting on a build or a server, which is `Monitor` with an until-loop.
+- The Agent tool takes a per-call `model` but no per-call `effort` — stated in
+  `CLAUDE.md` as the reason the tier lives in the agent definition rather than as a
+  bare limitation.
+- SDD's ledger no longer justifies itself with "context is limited"; on a 1M-context
+  model the load-bearing reasons are summarization and restart, which the same
+  paragraph already gave.
+
+### Reference files swept
+
+`writing-skills` bans `## Overview`, Bottom Line, and Real-World Impact
+library-wide, and forbids stating a rule twice. Its own supporting files still
+carried all of it. `testing-skills-with-subagents.md` lost those three sections and
+its "Red Flag Entry" step, which instructed exactly the duplicate-red-flags list
+the current contract forbids; its "Explicit Negation in Rules" step now shows the
+reason-carrying single rule instead of the prohibition list `SKILL.md` marks as the
+wrong form. `persuasion-principles.md` lost three; four systematic-debugging and TDD
+reference files lost theirs. Research citations stay — they are the evidentiary
+basis, not a sales pitch. `anthropic-best-practices.md` keeps its verbatim body and
+gains a fork note marking the multi-model testing matrix inapplicable.
+
+**Measured:** the always-on bootstrap grows from 1,837 to 2,094 characters (283 →
+329 words), roughly +64 tokens per session and ~1,600 additional token-reads per
+run at 25 turns. That is the price of the plan-mode branch, paid on every session.
+
+**UNMEASURED:** no pressure scenario was run. The task-surface and hook changes are
+factual repairs — one names tools that now exist, the other is covered by a
+regression test that fails against the old hook. The reference-file sweep deletes
+only the section types this repo's own contract classifies as non-load-bearing. The
+plan-mode branch is the one change that shapes discipline behavior and it has no
+baseline; it closes an observed gap rather than tightening an existing rule, but
+that is an argument, not a measurement.
+
 ## v6.2.1-cc.4 (2026-07-30)
 
 First release-notes entry for a `-cc` fork revision; earlier ones were not logged.
