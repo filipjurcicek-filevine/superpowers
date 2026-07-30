@@ -719,9 +719,14 @@ Replace line 19:
 with:
 
 ```markdown
-5. **Respond** with a technical acknowledgment or reasoned pushback. **REQUIRED
-   SUB-SKILL:** Use superpowers:writing-clearly-and-concisely.
+5. **Respond** with a technical acknowledgment or reasoned pushback.
+   **REQUIRED SUB-SKILL:** Use superpowers:writing-clearly-and-concisely.
 ```
+
+The break goes before `**REQUIRED`, never inside the token. Step 7 greps for
+`REQUIRED SUB-SKILL` on one line, so splitting the token makes this file report
+`MISS` — and all eleven pre-existing markers in the library keep it intact
+(`skills/writing-skills/SKILL.md:277`).
 
 - [ ] **Step 7: Verify the six files, the marker, and the removed hedge**
 
