@@ -4,9 +4,10 @@ Two distinct kinds of tests, each in its own directory:
 
 - **`tests/`** — does the plugin's non-LLM code work? Bash, node, and python
   tests over the hooks, the SDD workspace scripts, and the analysis utilities.
-- **`evals/`** — do agents behave correctly in real sessions? A harness driving
-  real tmux sessions of Claude Code, with an LLM actor and verifier judging skill
-  compliance.
+- **`evals/`** — do agents behave correctly in real sessions? A harness launching
+  real Claude Code sessions, with an LLM actor and verifier judging skill
+  compliance. Claude runs are driven through `obol`, not tmux; tmux is needed only
+  by the Antigravity and Windows launchers.
 
 ## Plugin tests
 
@@ -43,7 +44,7 @@ line proves only that the source is the source: it fires on every intentional
 rewrite and sleeps through behavior regressions. `writing-good-tests.md` rules
 this out, and a policy test that asserted the old `.worktrees/` wording was
 deleted for exactly this reason. Skills are tested by the behavior of the agent
-reading them — an LLM suite here, or a drill scenario.
+reading them — an LLM suite here, or a quorum scenario.
 
 **Every new hook needs a test suite**, and it must cover the fail-open paths
 (malformed JSON, missing transcript, unparseable input) as well as the blocking
@@ -52,20 +53,46 @@ ones. A hook that wedges a session is worse than the drift it was catching.
 ## Skill behavior evals
 
 Live in `evals/`, cloned from
-[superpowers-evals](https://github.com/prime-radiant-inc/superpowers-evals/).
-Scenarios live at `evals/scenarios/*.yaml`. See `evals/README.md` for setup.
+[superpowers-evals](https://github.com/prime-radiant-inc/superpowers-evals/) and
+gitignored here. The harness is **quorum** (formerly `drill`), a Bun/TypeScript
+project — not Python. Each scenario is a directory under `evals/scenarios/<name>/`
+holding `story.md`, `setup.sh`, and `checks.sh`; 81 ship today.
+
+Setup, verified 2026-07-30 on Bun 1.3.14:
 
 ```bash
-cd evals
-uv sync --extra dev
-export ANTHROPIC_API_KEY=sk-...
-uv run drill run triggering-test-driven-development -b claude
+brew install oven-sh/bun/bun     # needs bun >= 1.3.13
+cd evals && bun install
+bun run check                    # static gates: biome + tsc + bun test. No API calls.
+bun run quorum check             # validates every scenario definition
 ```
 
-Scenarios are slow (3-30+ minutes each) and run real sessions, so they are not in
+`bun run check` and `quorum check` are safe and offline. Running a scenario is
+not:
+
+```bash
+export SUPERPOWERS_ROOT=/path/to/superpowers
+export ANTHROPIC_API_KEY=...
+bun run quorum run scenarios/triggering-writing-plans --coding-agent claude
+bun run quorum show <run-dir>
+```
+
+**A live scenario launches Claude Code with `--dangerously-skip-permissions`.**
+quorum pins the agent's `HOME` and XDG dirs to a throwaway per-run home so it
+never sees your real `~/.claude`, but that narrows the blast radius rather than
+sandboxing it. Run these only locally, with only the one API key the run needs in
+the environment, and treat `evals/results/` as sensitive. See `evals/README.md`,
+"Safety Model".
+
+Scenarios are slow (3-30+ minutes each) and cost real tokens, so they are not in
 CI. They are the only thing that tells you whether a skill edit changed behavior
 in the direction you intended — see `CLAUDE.md`, "Skill Changes Are Behavior
 Changes".
+
+**Acceptance criteria assert tool calls, not prose.** A triggering scenario looks
+for a `Skill` invocation in the session log, not for an announcement string. So
+rewording a skill's prose does not move these evals; changing whether an agent
+loads the skill does.
 
 ## Baseline records
 

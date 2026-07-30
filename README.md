@@ -314,7 +314,7 @@ becomes active; the progress ledger stays the resume mechanism either way.
 
 This is a single-harness fork; changes here are not sent upstream. Contribute portable improvements to [upstream](https://github.com/obra/superpowers) instead. Within this fork, treat skill edits as behavior changes: follow the `writing-skills` skill, and measure before and after rather than assuming a rewording is an improvement.
 
-Skill-behavior tests use the drill eval harness from [superpowers-evals](https://github.com/prime-radiant-inc/superpowers-evals/), cloned into `evals/` — see `evals/README.md` for setup. Plugin-infrastructure tests live in `tests/`; each suite is a standalone script you run directly (`bash tests/hooks/test-session-start.sh`), and [docs/testing.md](docs/testing.md) lists them all. There is no `npm test` — `package.json` declares no scripts.
+Skill-behavior tests use the quorum eval harness from [superpowers-evals](https://github.com/prime-radiant-inc/superpowers-evals/), cloned into `evals/` — a Bun project, so `brew install oven-sh/bun/bun && cd evals && bun install`. [docs/testing.md](docs/testing.md) has the full setup and the safety notes for live runs. Plugin-infrastructure tests live in `tests/`; each suite is a standalone script you run directly (`bash tests/hooks/test-session-start.sh`), and [docs/testing.md](docs/testing.md) lists them all. There is no `npm test` — `package.json` declares no scripts.
 
 See `skills/writing-skills/SKILL.md` for the complete guide.
 
