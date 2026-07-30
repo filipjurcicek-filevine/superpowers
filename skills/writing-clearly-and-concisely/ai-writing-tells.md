@@ -120,9 +120,9 @@ nouns only.
 
 ## Punctuation and formatting
 
-The rules on title case, bold, and inline-header bullet lists govern prose
-documents; skill files in this library use bold labels and inline headers as
-navigation deliberately.
+The rules on bold and inline-header bullet lists govern prose documents; skill
+files in this library use bold labels and inline headers as navigation
+deliberately. The title-case rule above has no such exception.
 
 ### Do not bold for emphasis
 
