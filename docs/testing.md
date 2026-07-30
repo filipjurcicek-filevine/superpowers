@@ -67,6 +67,43 @@ bun run check                    # static gates: biome + tsc + bun test. No API 
 bun run quorum check             # validates every scenario definition
 ```
 
+### Cost data
+
+**obol ships no bundled rate table, so this step is not optional if you want
+dollar figures.** Without it every model reads as unpriced and every run reports
+`est_cost_usd: null` — which looks like "this model is too new to be priced" and
+is actually "no pricing table exists on this machine". quorum never refreshes on
+your behalf.
+
+```bash
+cd evals
+bun -e 'const{refresh}=await import("@primeradianthq/obol");
+        console.log(JSON.stringify(await refresh(new Date().toISOString().slice(0,10))))'
+# → {"models":2546,"as_of":"...","written_to":"~/.local/share/obol/current.json"}
+```
+
+obol reads that path by default; `OBOL_PRICING_DIR` overrides it. The table is
+machine-local, not part of either repo, and `pricing_as_of` freezes at the refresh
+date — so re-run it when rates change or a new model appears. Under Bun, set
+`OBOL_PRICING_DIR` before launching the process: a runtime `process.env` write
+does not reach obol's FFI (use its `setPricingDir` helper instead).
+
+A model with no row is reported in `unpriced_models` with its tokens preserved,
+so absent pricing degrades the dollar column without corrupting token counts.
+
+Rates after a 2026-07-30 refresh, per MTok:
+
+| Credential | Model | Input | Output | Cache read | Cache write |
+|---|---|---|---|---|---|
+| `opus5` | `claude-opus-5` | $5.00 | $25.00 | $0.50 | $6.25 |
+| `opus` | `claude-opus-4-8` | $5.00 | $25.00 | $0.50 | $6.25 |
+
+Identical, so opus5-vs-opus comparisons are directly readable as a behavior
+delta rather than a price delta. Verified on obol 0.8.0 with a synthetic ATIF
+trajectory: 1M input + 1M output priced at `total_usd` 30, `unpriced_models` `[]`.
+
+### Running a scenario
+
 `bun run check` and `quorum check` are safe and offline. Running a scenario is
 not:
 
