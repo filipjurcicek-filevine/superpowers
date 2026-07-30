@@ -19,17 +19,19 @@ These are the decisions that make this fork what it is. Do not undo them
 incidentally.
 
 **One harness.** Skills name Claude Code's tools directly: `EnterWorktree` /
-`ExitWorktree`, `AskUserQuestion`, `Artifact`, `TodoWrite`, `SendMessage`,
-`Workflow`, `Explore`. Do not reintroduce harness-abstraction hedging ("a tool
-with a name like…"), per-harness tool-mapping references, or plugin manifests for
-other harnesses — all of that has been removed, not merely disabled.
+`ExitWorktree`, `AskUserQuestion`, `Artifact`, `TaskCreate` / `TaskUpdate`,
+`SendMessage`, `Workflow`, `Explore`. Do not reintroduce harness-abstraction
+hedging ("a tool with a name like…"), per-harness tool-mapping references, or
+plugin manifests for other harnesses — all of that has been removed, not merely
+disabled.
 
 **One model, varying effort.** Subagent roles live in `agents/` as agent
 definitions with `model: inherit` and a fixed `effort:` tier. Do not add
 model-tier selection logic ("use the cheapest model that can…") — it produces
-dispatches this fork does not want. Per-call effort is not settable through the
-Agent tool; when a single dispatch needs a different tier, that is what the
-`Workflow` tool is for.
+dispatches this fork does not want. The Agent tool takes a per-call `model` but no
+per-call `effort`, which is precisely why the tier has to live in the definition:
+it is the only place a dispatch cannot quietly drop it. When a single dispatch
+genuinely needs a different tier, that is what the `Workflow` tool is for.
 
 **Two tiers, and the predicate for a third.** Authors and task-scoped gates run
 `high`; the whole-branch gate runs `xhigh`. The distinction is breadth of
@@ -68,10 +70,17 @@ match narrowly enough that a false positive is close to impossible, and ship wit
 a test suite that covers the fail-open paths. A hook that wedges a session is
 worse than the drift it was catching.
 
-**Native tasks are optional, the ledger is not.** `TaskCreate`/`TaskUpdate` sit
-behind `CLAUDE_CODE_ENABLE_TASKS`, so the progress ledger stays the resume
-mechanism and task instructions stay in one clearly-marked optional section. Do
-not spread task assumptions through the skills.
+**Native tasks are the task surface, the ledger is the resume mechanism.**
+`TaskCreate`/`TaskUpdate` are how a skill tracks work. They used to be written as
+an optional upgrade over `TodoWrite`, for sessions without
+`CLAUDE_CODE_ENABLE_TASKS`; that hedge no longer buys anything, because with the
+flag set `TodoWrite` is not in the tool surface at all, so the fallback branch
+named a tool that cannot be called. A branch on a tool that is either present or
+absent is the harness-abstraction the first invariant forbids.
+
+The ledger keeps its primacy regardless. It survives context summarization and
+session restart; a task list does not, and `blockedBy` enforces order rather than
+recording what already happened.
 
 **The writing style ships in-tree, and the option is a pointer.** Strunk's rules
 live in `skills/writing-clearly-and-concisely/`, and six skills invoke it with

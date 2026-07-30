@@ -41,11 +41,12 @@ Ensure the work happens in an isolated workspace: use
 superpowers:using-git-worktrees to create one or verify the existing one. Never
 start implementation on a main/master branch without the user's explicit consent.
 
-**The ledger.** Track progress in a file, not only in todos. Context is
+**The ledger.** Track progress in a file, not only in your task list. Context is
 summarized as a session grows, and a controller that lost its place has
 re-dispatched entire completed task sequences — the single most expensive failure
 observed. The ledger is the resume point across both summarization and session
-restart. Use it alongside TodoWrite, not instead of it.
+restart, neither of which a task list survives. Use it alongside the task list,
+not instead of it.
 
 - Each plan owns a workspace: at skill start, run this skill's
   `scripts/sdd-workspace PLAN_FILE` — it prints the plan's git-ignored directory
@@ -76,15 +77,10 @@ restart. Use it alongside TodoWrite, not instead of it.
   tool. Edit re-sends anchor text that grows with the file and triggers a
   permission prompt for every entry.
 
-Read the plan once, note its context and Global Constraints, and create a todo
-per task.
-
-**If `TaskCreate` is in your tool list**, mirror the plan into native tasks
-instead of todos. They add two things todos don't: `blockedBy` dependency
-enforcement, which is what actually stops a later task being started before the
-interface it consumes exists, and a live task panel in the IDE, so the user can
-see what is done, blocked, and next without reading your output. The ledger stays
-the resume mechanism either way.
+Read the plan once, note its context and Global Constraints, and mirror it into
+native tasks with `TaskCreate`. The task panel is what the user watches to see
+what is done, blocked, and next without reading your output; the ledger is what
+you resume from.
 
 - One task per plan task. Keep the subject compact — aim for 60 characters or
   fewer, no trailing detail. Every task's subject is re-injected into your context
@@ -335,7 +331,7 @@ other bookkeeping:
 - `Task <N>: complete (commits <base7>..<head7>, review clean)`
 - `Task <N>: complete (commits <base7>..<head7>, <K> parked)` after a tripped breaker
 
-Then mark the todo (or task) complete and move on. Never move to the next task
+Then `TaskUpdate` it to `completed` and move on. Never move to the next task
 while the review has open Critical/Important issues that are neither fixed nor
 parked-with-ruling at the cap.
 
@@ -406,7 +402,7 @@ You: I'm using Subagent-Driven Development to execute this plan.
 [Setup: worktree verified]
 [Read plan file once: docs/superpowers/plans/feature-plan.md]
 [Resolve workspace: scripts/sdd-workspace <plan> — no ledger inside, fresh start]
-[Create todos for all tasks]
+[TaskCreate for all plan tasks, with blockedBy for real dependencies]
 
 Task 1: Hook installation script
 

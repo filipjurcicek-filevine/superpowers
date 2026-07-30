@@ -189,11 +189,21 @@ you restart Claude Code.
 
 `claude plugin validate .` checks the manifests before you commit a change to them.
 
+### Required setting
+
+```json
+{ "env": { "CLAUDE_CODE_ENABLE_TASKS": "1" } }
+```
+
+In `~/.claude/settings.json`. The skills track work with `TaskCreate` /
+`TaskUpdate`, which this flag exposes; it also activates the user-gate hook.
+Without it those tools are absent and the tracking instructions have nothing to
+call. The progress ledger is the resume mechanism either way.
+
 ### Optional capabilities
 
 | Feature | Enable | Effect |
 |---|---|---|
-| Native task management | `CLAUDE_CODE_ENABLE_TASKS=1` | `blockedBy` dependency enforcement and a live task panel; activates the user-gate hook |
 | Writing style pointer | `SUPERPOWERS_WRITING_STYLE=1` | Adds a ~30-word pointer to `writing-clearly-and-concisely` to every session's context. Also accepts `true`, `yes`, and `on`, in any case. The skill's rules are not injected — the pointer routes to them |
 | Codex cross-review | [Codex CLI](https://github.com/openai/codex) on PATH | Spec, plan, and branch cross-review. Confirm it runs: `codex exec -s read-only -o /tmp/m "Reply OK" </dev/null` — a 400 about the model means the configured default is unusable, so pin one with `-c model=<name>` |
 
@@ -257,13 +267,18 @@ Requires the [Codex CLI](https://github.com/openai/codex) on PATH. Without it, e
 call site says so in one line and continues — it is an enhancement, never a gate.
 See [cross-reviewing-with-codex](skills/cross-reviewing-with-codex/SKILL.md).
 
-## Native task management (optional)
+## Native task management
 
-`TaskCreate` / `TaskUpdate` / `TaskList` give dependency enforcement via
-`blockedBy` and a live task view in the IDE. They sit behind
-`CLAUDE_CODE_ENABLE_TASKS`, so they are off by default. With them enabled,
-subagent-driven-development mirrors the plan into tasks and the user-gate hook
-becomes active; the progress ledger stays the resume mechanism either way.
+`TaskCreate` / `TaskUpdate` / `TaskList` are how the skills track work:
+subagent-driven-development mirrors the plan into tasks, executing-plans creates
+one per plan task, and any skill with a checklist creates one per item.
+`blockedBy` enforces dependency order and the task panel shows the user progress
+without their reading agent output.
+
+They require `CLAUDE_CODE_ENABLE_TASKS` — see [Required setting](#required-setting).
+Enabling it also activates the user-gate hook. The progress ledger remains the
+resume mechanism: it survives context summarization and session restart, which a
+task list does not.
 
 ## Writing style (optional)
 

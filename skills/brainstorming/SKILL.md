@@ -20,7 +20,7 @@ design can be three sentences; it still gets presented and approved.
 
 ## Checklist
 
-Create a todo for each item and complete them in order:
+`TaskCreate` one task per item and complete them in order:
 
 1. **Explore project context** — files, docs, recent commits
 2. **Ask clarifying questions** — purpose, constraints, success criteria

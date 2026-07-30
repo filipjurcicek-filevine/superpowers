@@ -31,7 +31,7 @@ inline execution does, because the reviewer has no stake in the code.
    types or signatures that don't match across tasks, anything the plan mandates
    that you believe is wrong.
 4. Raise what you found with the user before starting.
-5. Create a todo per task.
+5. `TaskCreate` one task per plan task.
 
 ### Step 2: Execute Tasks
 
