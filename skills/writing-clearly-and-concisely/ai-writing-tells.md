@@ -7,7 +7,7 @@
      Adapted: reframed from detection signs into prohibitions; explanatory prose,
      examples, and Wikipedia-process sections removed. -->
 
-## Regression to the Mean
+## Regression to the mean
 
 ### Do not inflate significance
 
@@ -67,7 +67,7 @@ challenges*, *Challenges and Legacy*, *Future Outlook*
 Do not end on the formula of conceding challenges and then speculating about prospects;
 name a specific open problem or stop.
 
-## Language and Grammar
+## Language and grammar
 
 ### Do not use AI vocabulary
 
@@ -118,7 +118,7 @@ middle.
 Do not capitalize every main word in a heading; capitalize the first word and proper
 nouns only.
 
-## Punctuation and Formatting
+## Punctuation and formatting
 
 ### Do not bold for emphasis
 
@@ -133,7 +133,7 @@ Do not open every bullet with a bold label and a colon; write the bullet as a se
 
 Do not put emoji in prose, including in front of a heading or a bullet.
 
-## Communication Intended for the User
+## Communication intended for the user
 
 ### Do not hedge about your knowledge cutoff
 
