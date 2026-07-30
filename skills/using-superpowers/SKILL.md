@@ -13,7 +13,7 @@ If this turn will write or change code, debug a failure, plan multi-step work, o
 
 Read-only turns do not need one: answering a question, explaining existing code, reviewing something already written, or reporting on state.
 
-Announce "Using [skill] to [purpose]", then follow it. If it has a checklist, create a todo per item. If the skill turns out to be wrong for the situation, say so and stop using it.
+Announce "Using [skill] to [purpose]", then follow it. If it has a checklist, `TaskCreate` one task per item. If the skill turns out to be wrong for the situation, say so and stop using it.
 
 ## Skill Priority
 
@@ -25,7 +25,11 @@ Process skills set the approach; implementation skills carry it out.
 
 ## Plan Mode
 
-The Superpowers flow carries its own approval gates: brainstorming approves the design, writing-plans approves the plan and its execution route. Do not also enter plan mode for work inside that flow — it gates the same decision twice. Plan mode is for implementation work that is not going through brainstorming.
+Brainstorming approves the design; writing-plans approves the plan and its execution route — the flow gates itself.
+
+- Work is going through that flow → do not call `EnterPlanMode`; it gates the same decision twice.
+- The turn *started* in plan mode → the harness's plan file is this turn's deliverable. Do not open a second artifact beside it: either it stands as the spec and writing-plans takes over after `ExitPlanMode`, or say that the Superpowers artifacts supersede it and where they will live.
+- Neither → plan mode is the right tool for the work.
 
 ## Red Flags
 
