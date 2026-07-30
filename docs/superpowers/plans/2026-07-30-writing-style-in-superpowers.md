@@ -4,9 +4,9 @@
 
 **Goal:** Ship a `writing-clearly-and-concisely` skill in this plugin, wire the six skills that author human-read prose to it, and add an opt-in session-start pointer to it.
 
-**Architecture:** One new skill directory with a short `SKILL.md` and two reference files. `hooks/session-start` gains a constant routing pointer behind `SUPERPOWERS_WRITING_STYLE` — it injects the routing rule, never the rules themselves, so no rule is stated twice and the hook reads no additional file. Six existing skills gain a `REQUIRED SUB-SKILL` marker at the instruction where they author prose.
+**Architecture:** One new skill directory with a short `SKILL.md` and two reference files. `hooks/session-start` gains a constant routing pointer behind `SUPERPOWERS_WRITING_STYLE` — it injects the routing rule, never the rules themselves, so no rule is stated twice and the hook reads no additional file. Six existing skills gain a `REQUIRED SUB-SKILL` marker at the instruction where they author prose. Task 5 micro-tests the skill's wording before Task 6 releases it.
 
-**Tech Stack:** Markdown skill files, bash 3.2-compatible hook script, the existing Node-based bash test harness in `tests/hooks/`.
+**Tech Stack:** Markdown skill files, bash 3.2-compatible hook script, the existing Node-based bash test harness in `tests/hooks/`, the Agent tool for the micro-test dispatches.
 
 **Spec:** `docs/superpowers/specs/2026-07-30-writing-style-in-superpowers-design.md`
 
@@ -21,9 +21,9 @@
 - `ai-writing-tells.md`: at or under 14336 bytes, and it keeps its CC BY-SA 4.0 header. The package is MIT (`.claude-plugin/plugin.json:11`); this one file is not.
 - Hook rules from `CLAUDE.md`: fail open on every path, emit one valid JSON object always, match narrowly. The env var is the kill switch; add no second one.
 - Every commit leaves the skill self-consistent: no `SKILL.md` reference to a file that does not exist yet, and no file in the directory that `SKILL.md` never mentions.
-- **Exactly three files ship.** The source directory has six. Do not copy `01-introductory.md` (three lines of preamble, no rules), `02-elementary-rules-of-usage.md` (seven grammar rules Opus 5 already follows), `04-a-few-matters-of-form.md` (1918 manuscript typography — ruled paper, syllabication, underscoring for italics), or `05-words-and-expressions-commonly-misused.md` (prescribes against singular *they*, which the harness requires, plus *shall* by person, *data* as plural, and entries for **Student Body** and **Thanking You in Advance**). The spec's "Content decisions" section records the full reasoning; copying them back is a regression, not an improvement.
-- The spec's commit plan lists four commits. This plan uses five: the skill splits into Task 1 (`SKILL.md` + the Strunk reference) and Task 2 (the distillation), because a reviewer can reject the 46.7KB→14KB distillation while approving the skill, and both commits leave the skill self-consistent.
+- **Exactly three files ship.** The source directory has six. Do not copy `01-introductory.md` (three lines of preamble, no rules), `02-elementary-rules-of-usage.md` (seven grammar rules Opus 5 already follows), `04-a-few-matters-of-form.md` (1918 manuscript typography — ruled paper, syllabication, underscoring for italics), or `05-words-and-expressions-commonly-misused.md` (prescribes against singular *they*, which the harness requires, plus *shall* by person, *data* as plural, and entries for **Student Body** and **Thanking You in Advance**). The spec's "Content decisions" records the reasoning; copying them back is a regression.
 - Version: release as `6.2.1-cc.4`. The leading `6.2.1` names the upstream base and does not change (`README.md:147-149`).
+- The spec's commit plan lists four commits. This plan uses six: the skill splits into Task 1 (`SKILL.md` + Strunk) and Task 2 (the distillation) because a reviewer can reject the 44KB→14KB distillation while approving the skill, and the micro-test the spec requires is its own task because it can send work back to Task 1.
 
 ---
 
@@ -36,7 +36,7 @@
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: the skill directory `skills/writing-clearly-and-concisely/`, invocable as `superpowers:writing-clearly-and-concisely`. Task 2 appends one bullet and edits one line in this `SKILL.md`. Tasks 3 and 4 depend only on the directory name.
+- Produces: the skill directory `skills/writing-clearly-and-concisely/`, invocable as `superpowers:writing-clearly-and-concisely`. Task 2 appends one bullet and edits the `## Reference` section of this `SKILL.md`. Tasks 3, 4, and 5 depend only on the directory name and this file's body text.
 
 This task's `SKILL.md` mentions exactly one reference file, because `ai-writing-tells.md` does not exist until Task 2. Do not forward-reference it.
 
@@ -131,13 +131,14 @@ Strunk 1918 is public domain; see that file's header for provenance.
 grep '^description:' skills/writing-clearly-and-concisely/SKILL.md | wc -c
 wc -w skills/writing-clearly-and-concisely/SKILL.md
 ls skills/writing-clearly-and-concisely/elements-of-style/
-grep -c 'ai-writing-tells' skills/writing-clearly-and-concisely/SKILL.md
+grep -c 'ai-writing-tells' skills/writing-clearly-and-concisely/SKILL.md || true
 ```
 
-Expected: description line at or under 150 characters (the `wc -c` count includes the
-`description: ` prefix and the trailing newline, so at or under 165 here); body
-comfortably under 500 words; the Strunk file present; and `grep -c` prints `0` —
-nothing references a file that does not exist yet.
+Expected: the description line at or under 165 bytes — that count includes the
+`description: ` prefix, a trailing newline, and an em dash that costs 3 bytes, so
+the 150-character constraint holds; body under 500 words; the Strunk file present;
+and `grep -c` prints `0`, because nothing may reference a file that does not exist
+yet.
 
 - [ ] **Step 5: Verify the plugin still validates**
 
@@ -155,7 +156,7 @@ their defect condition rather than banning tokens, and a scope section that
 exempts conversational turns and the quoted strings other skills mandate.
 
 Description is 16th in the library's always-resident set, so it carries triggers
-and keywords only."
+and keywords only. Wording is micro-tested in a later commit on this branch."
 ```
 
 ---
@@ -165,7 +166,7 @@ and keywords only."
 **Files:**
 - Create: `skills/writing-clearly-and-concisely/ai-writing-tells.md`
 - Modify: `skills/writing-clearly-and-concisely/SKILL.md` — the `## Reference` section
-- Read-only source (outside this repo, untracked): `/Users/filip.jurcicek/Projects/scratch/.claude/skills/writing-clearly-and-concisely/signs-of-ai-writing.md` (901 lines, 94519 bytes)
+- Read-only source (outside this repo, untracked): `/Users/filip.jurcicek/Projects/scratch/.claude/skills/writing-clearly-and-concisely/signs-of-ai-writing.md` — 901 lines, 94,774 bytes
 
 **Interfaces:**
 - Consumes: `skills/writing-clearly-and-concisely/SKILL.md` from Task 1.
@@ -216,24 +217,57 @@ SRC="/Users/filip.jurcicek/Projects/scratch/.claude/skills/writing-clearly-and-c
 for range in 19,168 183,316 319,330 331,348 349,410 479,502 503,514 515,566; do
   sed -n "${range}p" "$SRC"
 done > /tmp/retained.md
-wc -c /tmp/retained.md
+wc -l -c /tmp/retained.md
 ```
 
-Expected: about 46730 bytes. That is the input to Step 2, not the output.
+Expected: exactly 464 lines, 44107 bytes. That is the input to Step 2, not the output.
 
-- [ ] **Step 2: Apply the transform, per subsection**
+- [ ] **Step 2: Rename all 21 headings to imperative prohibitions**
 
-For each retained `###` subsection, the output is exactly two things:
+Every retained `###` heading is rewritten. The mapping is fixed — do not improvise
+one, and do not leave a source heading in place:
 
-1. Its **Words to watch** list, verbatim — except that footnote markers (`[^a]`,
-   `[^8]`) are stripped. Two lists carry them, so "verbatim" without this exception
-   cannot be satisfied.
-2. One sentence stating the rule as a prohibition, in the imperative.
+| Source line | Source heading | New heading |
+|---|---|---|
+| 27 | Undue emphasis on symbolism, legacy, and importance | Do not inflate significance |
+| 55 | Undue emphasis on notability, attribution, and media coverage | Do not certify importance by citation |
+| 83 | Superficial analyses | Do not analyze without saying anything |
+| 105 | Promotional and advertisement-like language | Do not sell |
+| 123 | Didactic, editorializing disclaimers | Do not lecture the reader |
+| 137 | Summaries and conclusions | Do not append a summary that adds nothing |
+| 147 | Outline-like conclusions about challenges and future prospects | Do not close with challenges and future prospects |
+| 185 | Overused "AI vocabulary" words | Do not use AI vocabulary |
+| 205 | Negative parallelisms | Do not write "not just X, but Y" |
+| 219 | Outlines of negatives | Do not define a thing by what it is not |
+| 247 | Rule of three | Do not force triples |
+| 255 | Vague attributions of opinion | Do not attribute opinions vaguely |
+| 271 | Excessive synonym variance / elegant variation | Do not vary a term for variety's sake |
+| 285 | False ranges | Do not write false ranges |
+| 297 | Title case in section headings | Do not use title case in headings |
+| 319 | Excessive use of boldface | Do not bold for emphasis |
+| 331 | Inline-header vertical lists | Do not write inline-header bullet lists |
+| 349 | Emojis | Do not decorate with emoji |
+| 479 | Knowledge-cutoff disclaimers and speculation about gaps in sources | Do not hedge about your knowledge cutoff |
+| 503 | Prompt refusals | Do not leak refusal language |
+| 515 | Phrasal templates and placeholder text | Do not ship placeholder text |
+
+Keep the source's two-level structure: `##` for the four retained groups, `###` per
+subsection, in source order.
+
+- [ ] **Step 3: Reduce each subsection to at most three things**
+
+Per subsection, the output is:
+
+1. The new heading from Step 2.
+2. Its **Words to watch** list, verbatim, with footnote markers (`[^a]`, `[^8]`)
+   stripped — two lists carry them. **Eleven of the 21 subsections have such a
+   list; the other ten do not. Invent none.**
+3. One sentence stating the rule as a prohibition, in the imperative.
 
 Delete everything else in the subsection: the explanatory paragraphs, every
 example, every Wikipedia link, every footnote reference, the screenshots.
 
-Worked example. The source subsection at lines 27–54 reduces to:
+Worked example — source lines 27–54 reduce to:
 
 ```markdown
 ### Do not inflate significance
@@ -248,63 +282,79 @@ Do not tell the reader that something matters; state what it does and let the fa
 carry the weight.
 ```
 
-Keep the source's two-level structure: `##` for the four retained groups, `###` per
-subsection.
+Worked example of a subsection with no watch list — source lines 205–218 reduce to:
 
-This is the one step in the plan that cannot be reduced to a mechanical edit, so it
-is also the one with an explicit reviewer check: pick any three retained
-subsections, open the source at their line ranges, and confirm the output kept the
-watch list intact and dropped everything else. A subsection that still carries a
-paragraph of explanation has not been transformed.
+```markdown
+### Do not write "not just X, but Y"
 
-- [ ] **Step 3: Write the attribution header**
+Do not build a sentence on the negation of a smaller claim — "it is not just a
+refactor, it is a rethink" — because the negated half is filler.
+```
 
-The file opens with this block, before any heading. Fill `<permalink>` per Step 4.
+This is the one step in the plan that is not a mechanical edit, so it carries an
+explicit reviewer check: pick any three subsections, open the source at their line
+ranges, and confirm the output kept the watch list intact where one exists and
+dropped everything else. A subsection that still carries a paragraph of explanation
+has not been transformed.
+
+- [ ] **Step 4: Resolve the revision permalink for the retrieval date**
+
+The local source copy was retrieved 2026-01-31. The permalink must name the revision
+current **on that date**, not the latest one:
+
+```bash
+curl -s --max-time 20 \
+  "https://en.wikipedia.org/w/api.php?action=query&prop=revisions&titles=Wikipedia:Signs_of_AI_writing&rvlimit=1&rvdir=older&rvstart=2026-01-31T23:59:59Z&rvprop=ids|timestamp&format=json" \
+  | node -e 'const d=JSON.parse(require("fs").readFileSync(0,"utf8"));const p=Object.values(d.query.pages)[0];const r=p.revisions[0];console.log(`https://en.wikipedia.org/w/index.php?title=Wikipedia:Signs_of_AI_writing&oldid=${r.revid} (revision of ${r.timestamp})`)'
+```
+
+Expected: a URL whose timestamp is on or before 2026-01-31. Paste it into the
+`Revision:` line in Step 5.
+
+On failure — no network, API change, non-zero exit, or a timestamp after
+2026-01-31 — replace the whole `Revision:` line with:
+
+```
+     Revision: not resolved; the local source copy carries no revision id.
+```
+
+Do not retry, and do not substitute the latest revision: naming a revision the text
+did not come from is worse than naming none. CC BY-SA attribution is satisfied by
+the page URL, the license, and the change notice.
+
+- [ ] **Step 5: Write the attribution header**
+
+The file opens with this block, before any heading, with `<permalink>` replaced per Step 4:
 
 ```markdown
 <!-- Adapted from the Wikipedia project page "Wikipedia:Signs of AI writing"
      (https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing).
-     Source copy retrieved 2026-01-31. Revision: <permalink>
+     Source copy retrieved 2026-01-31.
+     Revision: <permalink>
      Licensed CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/).
      This file remains CC BY-SA 4.0; the rest of this plugin is MIT.
      Adapted: reframed from detection signs into prohibitions; explanatory prose,
      examples, and Wikipedia-process sections removed. -->
 ```
 
-- [ ] **Step 4: Resolve the revision permalink, with a fallback**
+- [ ] **Step 6: Verify the budget and the counts**
 
 ```bash
-curl -s --max-time 20 \
-  "https://en.wikipedia.org/w/api.php?action=query&prop=revisions&titles=Wikipedia:Signs_of_AI_writing&rvlimit=1&rvprop=ids|timestamp&format=json" \
-  | node -e 'const d=JSON.parse(require("fs").readFileSync(0,"utf8"));const p=Object.values(d.query.pages)[0];const r=p.revisions[0];console.log(`https://en.wikipedia.org/w/index.php?title=Wikipedia:Signs_of_AI_writing&oldid=${r.revid} (revision current ${r.timestamp})`)'
+F=skills/writing-clearly-and-concisely/ai-writing-tells.md
+wc -c "$F"
+grep -c '^### ' "$F"
+grep -c 'Words to watch' "$F"
+grep -c 'en.wikipedia.org/wiki/Wikipedia:' "$F"
+grep -c '\[\^' "$F" || true
+grep -c '^### Do not ' "$F"
 ```
 
-On success, paste the printed URL into `<permalink>`. On failure — no network, API
-change, non-zero exit — replace the whole `Revision:` line with:
+Expected, in order: at or under 14336 bytes; `21` subsections; `11` watch lists;
+`1` Wikipedia link, the one in the header; `0` footnote markers; and `21` headings
+beginning "Do not " — every heading renamed. Over 14336 bytes means Step 3's
+deletions were not applied; cut the explanatory prose, never the watch lists.
 
-```
-     Revision: not recorded; the local source copy carries no revision id.
-```
-
-Do not retry, and do not guess a revision id. CC BY-SA attribution is satisfied by
-the page URL, license, and change notice; the permalink is precision, not a
-requirement.
-
-- [ ] **Step 5: Verify the budget**
-
-```bash
-wc -c skills/writing-clearly-and-concisely/ai-writing-tells.md
-grep -c 'Words to watch' skills/writing-clearly-and-concisely/ai-writing-tells.md
-grep -c 'en.wikipedia.org/wiki/Wikipedia:' skills/writing-clearly-and-concisely/ai-writing-tells.md
-grep -c '\[\^' skills/writing-clearly-and-concisely/ai-writing-tells.md || true
-```
-
-Expected: at or under 14336 bytes; one `Words to watch` line per retained
-subsection; exactly `1` Wikipedia link, the one in the attribution header; and `0`
-footnote markers. Over 14336 bytes means Step 2's deletions were not applied —
-cut the explanatory prose, not the watch lists.
-
-- [ ] **Step 6: Wire it into SKILL.md**
+- [ ] **Step 7: Wire it into SKILL.md**
 
 In `skills/writing-clearly-and-concisely/SKILL.md`, replace the `## Reference`
 section written in Task 1 with:
@@ -322,30 +372,31 @@ Strunk 1918 is public domain. `ai-writing-tells.md` is CC BY-SA 4.0, not MIT —
 its header.
 ```
 
-- [ ] **Step 7: Verify no file is unreferenced**
+- [ ] **Step 8: Verify no file is unreferenced**
 
 ```bash
-for f in ai-writing-tells.md elements-of-style/03-elementary-principles-of-composition.md; do
-  grep -q "$(basename "$f")" skills/writing-clearly-and-concisely/SKILL.md && echo "OK $f" || echo "UNREFERENCED $f"
+for f in ai-writing-tells.md 03-elementary-principles-of-composition.md; do
+  grep -q "$f" skills/writing-clearly-and-concisely/SKILL.md && echo "OK $f" || echo "UNREFERENCED $f"
 done
 ```
 
 Expected: `OK` for both. An unreferenced file in a skill directory is dead weight
 per `CLAUDE.md`.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
 git add skills/writing-clearly-and-concisely
 git commit -m "feat(skills): add distilled ai-writing-tells reference
 
-Adapted from Wikipedia's 'Signs of AI writing' (CC BY-SA 4.0, retained in the
-file header): 46.7KB of writing-relevant sections reduced to watch lists plus one
-prohibition each, reframed from detection to prescription.
+Adapted from Wikipedia's 'Signs of AI writing' (CC BY-SA 4.0, attribution and
+change notice in the file header): 44,107 bytes of writing-relevant sections
+reduced to 21 imperative headings, the 11 watch lists that exist, and one
+prohibition each.
 
-Excludes its em-dash, curly-quote, and Markdown advice, which is Wikipedia
-house style and would have agents strip formatting this harness renders. Excludes
-its collaborative-communication list, which watches phrasing this library mandates
+Excludes its em-dash, curly-quote, and Markdown advice, which is Wikipedia house
+style and would have agents strip formatting this harness renders. Excludes its
+collaborative-communication list, which watches phrasing this library mandates
 verbatim at using-git-worktrees:51 and brainstorming:140."
 ```
 
@@ -359,7 +410,7 @@ verbatim at using-git-worktrees:51 and brainstorming:140."
 
 **Interfaces:**
 - Consumes: the skill directory name from Task 1. Nothing else.
-- Produces: the `<superpowers-writing-style>` block and the env var contract. No later task depends on it.
+- Produces: the `<superpowers-writing-style>` block and the env var contract. Task 6's release notes cite the assertion count, which is 13.
 
 Tests first: the harness exists, so every case below can be written and watched to
 fail before the hook changes.
@@ -400,7 +451,7 @@ if (typeof context !== "string") {
 }
 if (!new RegExp(process.env.EXPECT_PATTERN).test(context)) {
   console.error(`context did not match /${process.env.EXPECT_PATTERN}/`);
-  console.error(`context tail was: ${JSON.stringify(context.slice(-120))}`);
+  console.error(`context tail was: ${JSON.stringify(context.slice(-160))}`);
   process.exit(1);
 }
 '; then
@@ -413,7 +464,7 @@ if (!new RegExp(process.env.EXPECT_PATTERN).test(context)) {
 
 - [ ] **Step 2: Add the failing test cases**
 
-Insert after the `legacy_home` block (after line 188), before the `if [[ "$FAILURES" -gt 0 ]]` check:
+Insert after the `legacy_home` block (after line 188), before the `if [[ "$FAILURES" -gt 0 ]]` check. Thirteen assertions:
 
 ```bash
 # Writing-style pointer: off unless SUPERPOWERS_WRITING_STYLE names a truthy
@@ -429,15 +480,15 @@ assert_command_output \
     CLAUDE_PLUGIN_ROOT="$REPO_ROOT" \
     bash "$HOOK_UNDER_TEST"
 
+# Enabled: assert BOTH blocks, in order. Asserting only the style block would pass
+# a hook that replaced the bootstrap instead of appending to it.
 style_on_index=0
 for value in 1 true yes on TRUE On; do
     style_on_index=$((style_on_index + 1))
     style_on_home="$(make_home "writing-style-on-$style_on_index")"
-    assert_command_output \
-        "writing-style pointer is present for SUPERPOWERS_WRITING_STYLE=$value" \
-        "nested" \
-        "<superpowers-writing-style>" \
-        "" \
+    assert_context_matches \
+        "both blocks present, in order, for SUPERPOWERS_WRITING_STYLE=$value" \
+        '^<superpowers-bootstrap>[\s\S]*</superpowers-bootstrap>\n<superpowers-writing-style>[\s\S]*writing-clearly-and-concisely[\s\S]*</superpowers-writing-style>$' \
         "$style_on_home" \
         CLAUDE_PLUGIN_ROOT="$REPO_ROOT" \
         SUPERPOWERS_WRITING_STYLE="$value" \
@@ -470,8 +521,10 @@ assert_context_matches \
     bash "$HOOK_UNDER_TEST"
 
 # The skill name lives in both the hook constant and the skills tree, so a rename
-# can break the pointer silently.
-pointer_ref="$(grep -o 'superpowers:[a-z][a-z-]*' "$HOOK_UNDER_TEST" | grep -v 'using-superpowers' | head -1)"
+# can break the pointer silently. `|| true` is required: with pipefail set, the
+# grep finds nothing during the RED run and would abort the suite before it
+# reports.
+pointer_ref="$(grep -o 'superpowers:[a-z][a-z-]*' "$HOOK_UNDER_TEST" | grep -v 'using-superpowers' | head -1 || true)"
 pointer_skill="${pointer_ref#superpowers:}"
 if [[ -n "$pointer_skill" && -d "$REPO_ROOT/skills/$pointer_skill" ]]; then
     pass "writing-style pointer names an existing skill ($pointer_skill)"
@@ -484,11 +537,12 @@ fi
 
 Run: `bash tests/hooks/test-session-start.sh`
 
-Expected: FAILED. Specifically, the six enabled cases fail because no
+Expected: `STATUS: FAILED (7 failure(s))`. The six enabled cases fail because no
 `<superpowers-writing-style>` block is emitted, and the skill-name check fails
 because the hook contains no `superpowers:writing-clearly-and-concisely` reference.
-The default, off-value, and unchanged-payload cases should already pass — they
-assert current behavior.
+The default, off-value, and unchanged-payload cases pass already — they assert
+current behavior. If the suite aborts instead of printing `STATUS: FAILED`, the
+`|| true` in the `pointer_ref` assignment is missing.
 
 - [ ] **Step 4: Implement the option in the hook**
 
@@ -515,7 +569,7 @@ after a `/clear` and after a compaction.
 - [ ] **Step 5: Run the tests to verify they pass**
 
 Run: `bash tests/hooks/test-session-start.sh`
-Expected: `STATUS: PASSED`, with all twelve new assertions passing.
+Expected: `STATUS: PASSED`, with all thirteen new assertions passing.
 
 - [ ] **Step 6: Verify both paths by eye**
 
@@ -528,7 +582,7 @@ Expected: the first ends at `</superpowers-bootstrap>`; the second ends at
 `</superpowers-writing-style>` and contains the pointer sentence with its em
 dashes intact.
 
-- [ ] **Step 7: Run the full hook test suite**
+- [ ] **Step 7: Run the full hook suite and the shell linter**
 
 ```bash
 bash tests/hooks/test-session-start.sh
@@ -550,9 +604,10 @@ rules themselves: the rules stay in the skill body, which costs nothing until
 invoked, and no rule ends up stated twice.
 
 The pointer is a string constant, so the option reads no file and adds no
-fail-open path. Twelve new assertions cover the enable predicate (1/true/yes/on,
-case-insensitive), the negative values, that the default payload is the bootstrap
-and nothing else, and that the skill the pointer names exists."
+fail-open path. Thirteen new assertions cover the enable predicate
+(1/true/yes/on, case-insensitive), the negative values, that an enabled session
+carries both blocks in order, that the default payload is the bootstrap and
+nothing else, and that the skill the pointer names exists."
 ```
 
 ---
@@ -569,7 +624,7 @@ and nothing else, and that the skill the pointer names exists."
 
 **Interfaces:**
 - Consumes: the skill name from Task 1.
-- Produces: six `REQUIRED SUB-SKILL` markers. Task 5's README grep count depends on there being exactly six.
+- Produces: `REQUIRED SUB-SKILL` markers in exactly those six files. Task 6's README prose depends on the count being six.
 
 Each edit attaches a marker to an instruction that already exists. Add no step to
 any sequence, and change no existing instruction's meaning. `subagent-driven-development`
@@ -636,7 +691,7 @@ Line 86 currently begins the body guidance:
 modes need and nothing else. Only two are load-bearing everywhere:
 ```
 
-Insert a blank line and this paragraph immediately before it:
+Insert this paragraph immediately before it, followed by a blank line:
 
 ```markdown
 **REQUIRED SUB-SKILL:** Use superpowers:writing-clearly-and-concisely for the
@@ -668,24 +723,35 @@ with:
    SUB-SKILL:** Use superpowers:writing-clearly-and-concisely.
 ```
 
-- [ ] **Step 7: Verify the count and the removed hedge**
+- [ ] **Step 7: Verify the six files, the marker, and the removed hedge**
+
+Two of the six markers wrap across lines, so count files rather than matching a
+single-line pattern:
 
 ```bash
-grep -rn 'REQUIRED SUB-SKILL:\*\* Use$\|REQUIRED SUB-SKILL:\*\* Use superpowers:writing-clearly-and-concisely' skills/ | wc -l
-grep -rn 'writing-clearly-and-concisely' skills/ | grep -v '^skills/writing-clearly-and-concisely/' | wc -l
+for f in brainstorming writing-plans finishing-a-development-branch writing-skills \
+         requesting-code-review receiving-code-review; do
+  if grep -q 'superpowers:writing-clearly-and-concisely' "skills/$f/SKILL.md" \
+     && grep -q 'REQUIRED SUB-SKILL' "skills/$f/SKILL.md"; then
+    echo "OK   $f"
+  else
+    echo "MISS $f"
+  fi
+done
+grep -rl 'superpowers:writing-clearly-and-concisely' skills/ \
+  | grep -v '^skills/writing-clearly-and-concisely/' | wc -l
 grep -rn 'varies by setup' skills/ || echo "hedge removed"
 grep -rn 'writing-clearly-and-concisely' skills/subagent-driven-development/ || echo "sdd correctly unwired"
 ```
 
-Expected: six references outside the skill's own directory; `hedge removed`; `sdd
-correctly unwired`. The first grep tolerates the two places where the marker wraps
-across lines.
+Expected: six `OK` lines, the count `6`, `hedge removed`, and `sdd correctly
+unwired`. Any `MISS` means that file's marker or its skill reference is absent.
 
 - [ ] **Step 8: Verify nothing else changed**
 
 Run: `git diff --stat`
-Expected: six files, and the insertions are markers only — no line of existing
-instruction rewritten beyond the brainstorming hedge replacement.
+Expected: six files. The insertions are markers only — no existing instruction
+rewritten except the brainstorming hedge replacement in Step 1.
 
 - [ ] **Step 9: Commit**
 
@@ -705,28 +771,146 @@ finishing-a-development-branch and authors no prose of its own. Commit messages
 are not wired either; nothing in this library instructs an agent to author one.
 
 UNMEASURED: these are additive markers, not discipline scaffolding, so no
-pressure scenario was run. The micro-test the spec owes covers the skill's own
-wording, not these references."
+pressure scenario was run."
 ```
 
 ---
 
-### Task 5: Documentation and release
+### Task 5: Micro-test the skill's wording
 
 **Files:**
-- Modify: `README.md:175`, `README.md:196`, `README.md:213-229`, and a new section before line 261
+- Create: `/tmp/microtest/` — scratch only, committed nowhere
+- Modify (only if the bar fails): `skills/writing-clearly-and-concisely/SKILL.md`
+- Read-only: `/Users/filip.jurcicek/Projects/scratch/.claude/skills/writing-clearly-and-concisely/SKILL.md` — the source form, arm B
+
+**Interfaces:**
+- Consumes: the shipped `SKILL.md` from Tasks 1-2.
+- Produces: a tally table and a verdict. Task 6's release-notes entry states the result, so this task must finish before it.
+
+`CLAUDE.md` requires behavior-shaping wording to be micro-tested against a
+no-guidance control, 5+ reps, every flagged match read by hand. This task
+discharges that. It answers one question: does the shipped `SKILL.md` produce
+prose at least as clean as the source skill's longer form?
+
+- [ ] **Step 1: Write the three arm prefixes**
+
+```bash
+mkdir -p /tmp/microtest
+: > /tmp/microtest/arm-a-control.txt
+cp "/Users/filip.jurcicek/Projects/scratch/.claude/skills/writing-clearly-and-concisely/SKILL.md" /tmp/microtest/arm-b-source.txt
+cp skills/writing-clearly-and-concisely/SKILL.md /tmp/microtest/arm-c-shipped.txt
+wc -c /tmp/microtest/arm-*.txt
+```
+
+Arm A is empty by design — it is the no-guidance control.
+
+- [ ] **Step 2: Write the three prompts**
+
+```bash
+cat > /tmp/microtest/prompt-1-spec.txt <<'EOF'
+Write one paragraph for a design spec explaining why a session-start hook injects a
+routing pointer to a skill instead of the skill's full text. Prose only, no headings.
+EOF
+cat > /tmp/microtest/prompt-2-pr.txt <<'EOF'
+Write a PR description for a two-commit change that adds an opt-in environment
+variable to a shell hook and its test cases. Prose only, no headings.
+EOF
+cat > /tmp/microtest/prompt-3-review.txt <<'EOF'
+Write a review summary reporting three findings to a colleague: a missing test case,
+a stale byte count in a doc, and a grep whose regex does not match what it claims.
+Prose only, no headings.
+EOF
+```
+
+- [ ] **Step 3: Run 45 dispatches**
+
+For each arm (A, B, C) × prompt (1, 2, 3) × rep (1-5), dispatch one `Agent`
+(`subagent_type: general-purpose`) whose prompt is the arm prefix file's contents
+followed by the prompt file's contents, and save its output:
+
+```
+/tmp/microtest/<arm>-<prompt>-<rep>.md
+```
+
+For arm A, send the prompt alone. Dispatch the reps for one arm+prompt cell
+concurrently; do not reuse a subagent across cells, and do not let any dispatch see
+another's output.
+
+```bash
+ls /tmp/microtest/*.md | wc -l   # 45
+```
+
+- [ ] **Step 4: First-pass flag with grep, then read every hit by hand**
+
+```bash
+cd /tmp/microtest
+grep -n -i -E 'pivotal|crucial|vital|testament|enduring|robust|seamless|groundbreaking|cutting-edge|delve|leverage|multifaceted|foster|realm|tapestry|landscape|navigate|ensuring |showcasing|highlighting|underscoring|one of the most|literally|very |certainly |in order to' *.md > flagged.txt
+wc -l flagged.txt
+```
+
+The grep is a first pass, not the count. Read each hit and keep only real defects —
+`leverage` as a noun in "leverage ratio" is not a hit; *system* in "the hook system"
+is not a hit. Then read every file for the three patterns grep cannot see: a passive
+construction where an actor exists, a hedge that adds no information, and a claim
+where a fact belongs.
+
+- [ ] **Step 5: Fill the tally**
+
+| Arm | prompt-1 | prompt-2 | prompt-3 | total |
+|---|---|---|---|---|
+| A — control | | | | |
+| B — source form | | | | |
+| C — shipped | | | | |
+
+Each cell is flagged matches summed across that cell's 5 reps.
+
+- [ ] **Step 6: Apply the bar**
+
+- **C ≤ B on every prompt, and both clearly below A** → the compression held. Record
+  the table and continue to Task 6.
+- **C > B on any prompt** → the cut removed something load-bearing. Diff arm B's
+  `SKILL.md` against arm C's, restore the guidance the regressed prompt needed, and
+  re-run Steps 3-5 for that prompt only. Commit the restoration before Task 6.
+- **A ≤ C** → the skill is not earning its place. Stop and report to the user
+  rather than releasing it; this is a design question, not a wording fix.
+
+- [ ] **Step 7: Record the result**
+
+Write the filled table and the verdict into the commit message. If Step 6 required a
+restoration:
+
+```bash
+git add skills/writing-clearly-and-concisely/SKILL.md
+git commit -m "fix(skills): restore <what> after micro-test regression
+
+Arm C regressed against arm B on prompt <n> (<count> vs <count> flagged matches
+over 5 reps). Restored <what> and re-ran that prompt: <new counts>."
+```
+
+If no restoration was needed, there is nothing to commit — carry the table into
+Task 6's release notes.
+
+---
+
+### Task 6: Documentation and release
+
+**Files:**
+- Modify: `README.md:175`, `README.md:196`, `README.md:219`, `README.md:213-229`, and a new section before line 261
 - Modify: `CLAUDE.md` — after the "Native tasks are optional" paragraph at line 71
 - Modify: `RELEASE-NOTES.md` — new section after line 1
 - Modify: `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` via script
 
 **Interfaces:**
-- Consumes: everything from Tasks 1-4.
+- Consumes: everything from Tasks 1-5, including Task 5's tally.
 - Produces: the released state.
 
-- [ ] **Step 1: Fix the skill count**
+- [ ] **Step 1: Fix the skill count in both places**
 
-In `README.md:175`, change `**15 skills**` to `**16 skills**`. That count is used as
-a manifest-sanity check, so a stale number reads as a broken manifest.
+`README.md:175`: `**15 skills**` → `**16 skills**`. That count is a
+manifest-sanity check, so a stale number reads as a broken manifest.
+
+`README.md:219`: the SessionStart section says "without it the other fourteen
+skills are installed but nothing routes to them" → "the other fifteen skills".
 
 - [ ] **Step 2: Add the optional-capabilities row**
 
@@ -787,7 +971,8 @@ token cost either; body length is measured noise.
 
 - [ ] **Step 6: Add the release notes entry**
 
-After `# Superpowers Release Notes` (line 1), insert:
+After `# Superpowers Release Notes` (line 1), insert the block below. Replace
+`<tally>` with Task 5's filled table and `<verdict>` with its one-line result.
 
 ```markdown
 
@@ -798,10 +983,12 @@ First release-notes entry for a `-cc` fork revision; earlier ones were not logge
 ### Writing style
 
 - **`writing-clearly-and-concisely` ships with the plugin.** Six operative rules from Strunk's *Elements of Style* with before/after rewrites, plus a kill list whose entries carry their defect condition rather than banning tokens. Six skills now invoke it with `REQUIRED SUB-SKILL` markers where they author prose a human reads: the spec, the plan, the PR description, skill prose, the findings relay, and the review response. `brainstorming` loses the "namespace varies by setup" hedge it carried while the skill was external.
-- **`SUPERPOWERS_WRITING_STYLE=1` adds a routing pointer to every session**, off by default. It injects the pointer, not the rules; the hook reads no file, so the option adds no fail-open path. Twelve new assertions in `tests/hooks/test-session-start.sh` cover the enable predicate, the negative values, and that the default payload is the bootstrap and nothing else.
-- **Two reference files, not five.** The source skill's word-list section prescribed against singular *they*, which the harness requires; its "matters of form" section was 1918 manuscript typography; its seven grammar rules are ones Opus 5 already follows. `ai-writing-tells.md` distills 46.7KB of Wikipedia's "Signs of AI writing" into watch lists plus one prohibition each, dropping that guide's em-dash, curly-quote, and Markdown advice — Wikipedia house style that would have agents strip formatting this harness renders. It stays CC BY-SA 4.0; the package remains MIT.
+- **`SUPERPOWERS_WRITING_STYLE=1` adds a routing pointer to every session**, off by default. It injects the pointer, not the rules; the hook reads no file, so the option adds no fail-open path. Thirteen new assertions in `tests/hooks/test-session-start.sh` cover the enable predicate, the negative values, that an enabled session carries both blocks in order, and that the default payload is the bootstrap and nothing else.
+- **Two reference files, not five.** The source skill's word-list section prescribed against singular *they*, which the harness requires; its "matters of form" section was 1918 manuscript typography; its seven grammar rules are ones Opus 5 already follows. `ai-writing-tells.md` distills 44,107 bytes of Wikipedia's "Signs of AI writing" into 21 imperative headings with the 11 watch lists that exist, dropping that guide's em-dash, curly-quote, and Markdown advice — Wikipedia house style that would have agents strip formatting this harness renders. It stays CC BY-SA 4.0; the package remains MIT.
 
-**UNMEASURED:** the skill's wording has not been micro-tested against a no-guidance control. The plan's rubric for that is in `docs/superpowers/plans/2026-07-30-writing-style-in-superpowers.md`.
+**Measured:** the shipped `SKILL.md` was micro-tested against a no-guidance control and against the source skill's longer form — three prompts, five reps per arm, every flagged match read by hand. <verdict>
+
+<tally>
 ```
 
 - [ ] **Step 7: Bump the version**
@@ -811,8 +998,13 @@ bash scripts/bump-version.sh 6.2.1-cc.4
 bash scripts/bump-version.sh --audit
 ```
 
-Expected: three files updated; the audit reports no stragglers. The leading `6.2.1`
-stays — it names the upstream base, and nothing here adopts a new upstream.
+Expected: three files updated. The audit reports occurrences of `6.2.1-cc.4` in
+`docs/superpowers/specs/2026-07-30-writing-style-in-superpowers-design.md` and
+`docs/superpowers/plans/2026-07-30-writing-style-in-superpowers.md`, because
+`.version-bump.json` excludes `CHANGELOG.md`, `RELEASE-NOTES.md`, and `README.md`
+but not `docs/`. **Those two are expected and correct** — the spec and plan name
+the release deliberately, and `CLAUDE.md` treats historical docs as a record.
+Anything else the audit names is a real straggler.
 
 - [ ] **Step 8: Verify the manifests and the whole suite**
 
@@ -824,42 +1016,23 @@ claude plugin details superpowers@superpowers-cc
 ```
 
 Expected: validate passes; tests pass; `details` reports **16 skills**, 4 agents, 2
-hooks. Read the always-on and on-invoke numbers it prints for the new skill and
-record them in the commit message — `README.md:174-179` treats those counts as the
-manifest check, and the description's always-on cost is the number worth knowing.
+hooks. Copy the always-on and on-invoke figures it prints for
+`writing-clearly-and-concisely` — Step 9's commit message quotes them.
 
 - [ ] **Step 9: Commit**
+
+Replace the two bracketed figures with what Step 8 printed:
 
 ```bash
 git add README.md CLAUDE.md RELEASE-NOTES.md package.json .claude-plugin/plugin.json .claude-plugin/marketplace.json
 git commit -m "docs(release): 6.2.1-cc.4 — writing style in-tree
 
 README gains the optional-capabilities row, the SessionStart consequence, and a
-Writing style section stating the CC BY-SA boundary. Skill count 15 -> 16.
-CLAUDE.md records the invariant: the option is a pointer, and injecting the rules
-would mean two drifting copies.
+Writing style section stating the CC BY-SA boundary. Skill count 15 -> 16 in both
+places it appears. CLAUDE.md records the invariant: the option is a pointer, and
+injecting the rules would mean two drifting copies.
 
-Version stays on the 6.2.1 upstream base per the fork's convention."
+Measured cost from 'claude plugin details': always-on <N> tokens (the
+description), on-invoke <N> tokens (the body). Version stays on the 6.2.1 upstream
+base per the fork's convention."
 ```
-
----
-
-## Micro-test obligation
-
-`CLAUDE.md` requires behavior-shaping wording to be micro-tested against a
-no-guidance control before it is trusted. This plan ships the skill; it does not
-discharge that obligation. Run it as follow-up work, before relying on the skill
-under pressure:
-
-- **Arms:** no-guidance control; the source skill's longer `SKILL.md` verbatim; the
-  shipped `SKILL.md`.
-- **Prompts:** three, one per output kind — a spec paragraph describing a design
-  decision, a PR description for a two-commit change, a review summary of three
-  findings.
-- **Reps:** 5 per arm per prompt.
-- **Flagged match**, counted by hand per rep: a kill-list hit in its defect
-  condition; a passive construction where an actor exists; a hedge that adds no
-  information; a puffery adjective.
-- **Bar:** the shipped arm is at or below the source arm on every prompt, and both
-  are clearly below the control. A shipped arm that regresses against the source
-  means the compression removed something load-bearing — restore it.

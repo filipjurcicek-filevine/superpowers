@@ -119,9 +119,11 @@ mid-task will strip formatting the harness relies on.
 
 ### `ai-writing-tells.md` — distillation criteria
 
-The retained ranges measure **46,730 bytes** in the source. Reaching ≤14KB is a
-73% cut, so the transform rules below are what produce it — not incidental
-trimming. The rules are fixed here because the edit is judgment-heavy.
+The source is 901 lines and 94,774 bytes. The retained ranges measure **44,107
+bytes** across **21 subsections**, of which **11 carry a Words-to-watch list** and
+10 do not. Reaching ≤14KB is a 68% cut, so the transform rules below are what
+produce it — not incidental trimming. The rules are fixed here because the edit is
+judgment-heavy.
 
 **Retain, as subsections:**
 
@@ -144,16 +146,19 @@ would have the skill contradict the skills that invoke it.
 
 **Transform, per retained subsection:**
 
-1. Keep its **Words to watch** list, verbatim except that footnote markers
+1. Rewrite its heading as an imperative prohibition. "Undue emphasis on symbolism,
+   legacy, and importance" becomes "Do not inflate significance."
+2. Keep its **Words to watch** list, verbatim except that footnote markers
    (`[^a]`, `[^8]`) are dropped — two such lists carry them, so "verbatim" without
-   this exception is unsatisfiable.
-2. Add one sentence stating the rule as a prohibition: what not to write, in the
+   this exception is unsatisfiable. **Ten subsections have no such list; invent
+   none.**
+3. Add one sentence stating the rule as a prohibition: what not to write, in the
    imperative.
-3. Delete everything else: the explanatory paragraphs, every example gallery, all
+4. Delete everything else: the explanatory paragraphs, every example gallery, all
    Wikipedia links, all footnotes.
 
-A watch list plus one sentence per subsection is the whole file. A result above
-14KB means step 3 was not applied.
+A heading, an optional watch list, and one sentence per subsection is the whole
+file. A result above 14KB means step 4 was not applied.
 
 ### Provenance and licensing
 
@@ -167,8 +172,11 @@ sources at copy time:
   `elements-of-style/03-elementary-principles-of-composition.md`.
 - **`ai-writing-tells.md`.** Adapted from the Wikipedia project page
   "Wikipedia:Signs of AI writing," licensed **CC BY-SA 4.0**. Its header carries:
-  the page title, the permalink of the revision current at retrieval, the retrieval
-  date, the license name and URL, and a change notice — "adapted: reframed as
+  the page title, the permalink of the revision current **on the retrieval date**
+  (resolvable through the MediaWiki API with `rvstart`, so "the latest revision" is
+  not a substitute; if the API is unreachable, the header says the revision was not
+  resolved rather than naming the wrong one), the retrieval date, the license name
+  and URL, and a change notice — "adapted: reframed as
   prohibitions; examples, explanatory prose, and Wikipedia-process sections
   removed." CC BY-SA requires attribution and share-alike, so this file stays CC
   BY-SA even though `.claude-plugin/plugin.json:11` declares the package MIT. State
@@ -438,7 +446,8 @@ Commit 2 depends on commit 1: its skill-name test asserts the directory exists.
   2 hooks, and the on-invoke and always-on numbers for the new skill.
 - `wc -c` on the new `description` is at or under ~150.
 - `wc -c ai-writing-tells.md` is at or under 14336.
-- `ai-writing-tells.md` header carries the Wikipedia permalink, retrieval date, CC
+- `ai-writing-tells.md` header carries the Wikipedia permalink for the retrieval
+  date — or an explicit statement that it could not be resolved — plus retrieval date, CC
   BY-SA 4.0 notice, and change notice.
 - `grep -rn "writing-clearly-and-concisely" skills/` returns the six wired call
   sites, each with a `REQUIRED SUB-SKILL` marker, plus the skill itself — and no
