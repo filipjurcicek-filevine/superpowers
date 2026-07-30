@@ -73,6 +73,14 @@ behind `CLAUDE_CODE_ENABLE_TASKS`, so the progress ledger stays the resume
 mechanism and task instructions stay in one clearly-marked optional section. Do
 not spread task assumptions through the skills.
 
+**The writing style ships in-tree, and the option is a pointer.** Strunk's rules
+live in `skills/writing-clearly-and-concisely/`, and six skills invoke it with
+`REQUIRED SUB-SKILL` markers where they author prose. `SUPERPOWERS_WRITING_STYLE`
+injects a routing pointer to that skill — never the rules themselves. Injecting the
+rules would put the same text in the hook and in `SKILL.md`, two copies drifting
+apart, against "say each rule once" below. Do not compress that `SKILL.md` for
+token cost either; body length is measured noise.
+
 **Say each rule once.** The upstream corpus stated key rules four ways — a
 principle, a prohibition list, a rationalization table, and a red-flags list.
 This fork keeps one statement per rule, in the form that matches its failure mode

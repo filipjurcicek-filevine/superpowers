@@ -1,7 +1,7 @@
 {
   "name": "superpowers",
   "description": "Superpowers skills for Claude Code, tuned for Opus 5: TDD, systematic debugging, spec-plan-execute with subagent review, and Codex cross-review",
-  "version": "6.2.1-cc.3",
+  "version": "6.2.1-cc.4",
   "author": {
     "name": "Filip Jurcicek",
     "email": "filipjurcicek@filevine.com"

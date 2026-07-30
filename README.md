@@ -172,7 +172,7 @@ updated, `details` printed `6.2.1-cc.2` while `list` printed `6.2.1-cc.1`, and t
 edits were absent from `~/.claude/plugins/cache/superpowers-cc/`. Trust `list`.
 
 `details` is still the right tool for the **component inventory**, which does come
-from the manifest and the tree. This fork should show **15 skills**, **4 agents**
+from the manifest and the tree. This fork should show **16 skills**, **4 agents**
 (`code-reviewer`, `sdd-implementer`, `sdd-task-reviewer`, `sdd-re-reviewer`), and
 **2 hooks** (SessionStart, PreToolUse — two events, three scripts). If `agents` is
 0 or `cross-reviewing-with-codex` is missing, the manifests are wrong, not the
@@ -194,6 +194,7 @@ you restart Claude Code.
 | Feature | Enable | Effect |
 |---|---|---|
 | Native task management | `CLAUDE_CODE_ENABLE_TASKS=1` | `blockedBy` dependency enforcement and a live task panel; activates the user-gate hook |
+| Writing style pointer | `SUPERPOWERS_WRITING_STYLE=1` | Adds a ~35-word pointer to `writing-clearly-and-concisely` to every session's context. Also accepts `true`, `yes`, `on`. The skill's rules are not injected — the pointer routes to them |
 | Codex cross-review | [Codex CLI](https://github.com/openai/codex) on PATH | Spec, plan, and branch cross-review. Confirm it runs: `codex exec -s read-only -o /tmp/m "Reply OK" </dev/null` — a 400 about the model means the configured default is unusable, so pin one with `-c model=<name>` |
 
 ### Other harnesses
@@ -216,7 +217,7 @@ fail open on any error.
 `skills/using-superpowers/SKILL.md` into every session's context as a
 `<superpowers-bootstrap>` block, on `startup`, `clear`, and `compact`. That
 bootstrap is what tells the agent to invoke a skill before acting; without it the
-other fourteen skills are installed but nothing routes to them. It has no kill
+other fifteen skills are installed but nothing routes to them. It has no kill
 switch because disabling it disables the library.
 
 Two consequences worth knowing:
@@ -227,6 +228,12 @@ Two consequences worth knowing:
 - **Editing `using-superpowers` changes every session, not just the ones that
   invoke it.** Re-check the always-on token cost in `claude plugin details` after
   any edit to it.
+
+With `SUPERPOWERS_WRITING_STYLE` enabled, a second block follows the bootstrap: a
+~35-word pointer to `writing-clearly-and-concisely`. The pointer is a constant in
+the hook, not a file read, and the skill's **body is not resident** — so
+`using-superpowers` remains the only skill whose full text is always in context,
+and the warning above still names one file.
 
 ### PreToolUse — two gates
 
@@ -257,6 +264,23 @@ See [cross-reviewing-with-codex](skills/cross-reviewing-with-codex/SKILL.md).
 `CLAUDE_CODE_ENABLE_TASKS`, so they are off by default. With them enabled,
 subagent-driven-development mirrors the plan into tasks and the user-gate hook
 becomes active; the progress ledger stays the resume mechanism either way.
+
+## Writing style (optional)
+
+`skills/writing-clearly-and-concisely/` carries six rules from Strunk's *Elements
+of Style* and the word patterns a language model reaches for by default. Six skills
+invoke it where they author prose a human reads: the spec, the plan, the PR
+description, skill prose, the findings relay, and the review response.
+
+`SUPERPOWERS_WRITING_STYLE=1` additionally puts a routing pointer in every
+session, for prose written outside those six flows. It injects the pointer, not the
+rules — the rules stay in the skill body, so no rule is stated twice and nothing is
+resident that a session might never use. An agent that ignores the pointer gets no
+style guidance; the six call sites, not the option, are what make this reliable.
+
+`ai-writing-tells.md` is adapted from Wikipedia's "Signs of AI writing" and is
+licensed **CC BY-SA 4.0**, not MIT. Its header carries the attribution and change
+notice. One file under a different license does not relicense this package.
 
 ## The Basic Workflow
 
