@@ -11,14 +11,23 @@
 # agent definitions were introduced to remove. Prose cannot catch it; this can.
 #
 # Scope is deliberately narrow. The gate fires only when the dispatch is
-# provably an SDD dispatch: its prompt references a path inside the SDD
-# workspace (.superpowers/sdd/), which is where briefs, reports and review
-# packages live. Every other Agent call passes untouched.
+# provably an SDD dispatch: its prompt hands over a path inside a plan's
+# workspace directory, .superpowers/sdd/<plan>/<artifact>, which is where briefs,
+# reports and review packages live. Every other Agent call passes untouched.
+#
+# Why the plan directory must exist, rather than matching the text
+# .superpowers/sdd/ anywhere in the prompt: a substring match blocked a read-only
+# Explore dispatch whose prompt named ".superpowers/sdd/*.diff" as a path to
+# EXCLUDE from its search. Mentioning the workspace is not dispatching into it. A
+# real dispatch always names a path two levels deep whose plan directory is
+# already on disk, because sdd-workspace creates it and task-brief /
+# review-package write into it before any agent is called. A glob, a bare
+# mention, or a plan name that does not exist cannot satisfy that.
 #
 # Decision order:
 #   1. SUPERPOWERS_EFFORT_GUARD=0            -> allow (kill switch)
 #   2. tool_name != Agent                    -> allow
-#   3. prompt has no .superpowers/sdd/ path  -> allow (not an SDD dispatch)
+#   3. no existing plan workspace in prompt  -> allow (not an SDD dispatch)
 #   4. subagent_type is a known SDD role     -> allow
 #   5. otherwise                             -> block (exit 2) with the fix
 #
@@ -54,14 +63,26 @@ if [ "${TOOL_NAME:-}" != "Agent" ]; then
     exit 0
 fi
 
-# Not an SDD dispatch unless it hands over an SDD workspace artifact.
-case "${PROMPT:-}" in
-    *".superpowers/sdd/"*) ;;
-    *)
-        echo "$ALLOW"
-        exit 0
-        ;;
-esac
+# Not an SDD dispatch unless it hands over a plan workspace that exists. Pull out
+# every path prefix through a plan directory — .superpowers/sdd/<plan>/ — and keep
+# the ones that are a real directory. The trailing slash is what makes a bare
+# mention or a glob ineligible: ".superpowers/sdd/" and ".superpowers/sdd/*.diff"
+# have no plan component to match. Paths resolve against the session's working
+# directory, the same base the dispatch used.
+IS_SDD_DISPATCH=0
+while read -r CANDIDATE; do
+    [ -n "$CANDIDATE" ] || continue
+    if [ -d "${CANDIDATE%/}" ]; then
+        IS_SDD_DISPATCH=1
+        break
+    fi
+done <<< "$(printf '%s\n' "${PROMPT:-}" |
+    grep -oE '[^[:space:]]*\.superpowers/sdd/[^/[:space:]]+/' || true)"
+
+if [ "$IS_SDD_DISPATCH" -eq 0 ]; then
+    echo "$ALLOW"
+    exit 0
+fi
 
 # Known SDD roles, with or without the plugin namespace.
 case "${AGENT_TYPE:-}" in
@@ -78,9 +99,9 @@ GOT="${AGENT_TYPE:-(none)}"
 {
     echo "SDD DISPATCH IS NOT ON AN EFFORT-PINNED AGENT TYPE"
     echo
-    echo "This Agent call hands over an SDD workspace artifact (.superpowers/sdd/),"
-    echo "so it is a subagent-driven-development dispatch, but subagent_type is"
-    echo "'$GOT'."
+    echo "This Agent call hands over a path inside an existing SDD plan workspace"
+    echo "(.superpowers/sdd/<plan>/), so it is a subagent-driven-development"
+    echo "dispatch, but subagent_type is '$GOT'."
     echo
     echo "The Agent tool has no effort parameter: effort comes from the agent"
     echo "definition named by subagent_type. Dispatching without one runs the role"
