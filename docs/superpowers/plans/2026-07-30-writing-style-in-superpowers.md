@@ -960,6 +960,24 @@ licensed **CC BY-SA 4.0**, not MIT. Its header carries the attribution and chang
 notice. One file under a different license does not relicense this package.
 ```
 
+- [ ] **Step 4b: Note the license exception in LICENSE**
+
+`LICENSE` declares the repository MIT with no exception, while
+`skills/writing-clearly-and-concisely/ai-writing-tells.md` is CC BY-SA 4.0. The
+file header and the README section state that boundary; the LICENSE file is where a
+packager looks first. Append to `LICENSE`:
+
+```
+---
+
+Exception: skills/writing-clearly-and-concisely/ai-writing-tells.md is adapted
+from Wikipedia and licensed CC BY-SA 4.0, not MIT. See that file's header for
+attribution and the change notice.
+```
+
+Task 2's reviewer raised this as a branch-level packaging gap; it is recorded here
+rather than in Task 2 because LICENSE is a release artifact.
+
 - [ ] **Step 5: Add the fork invariant**
 
 In `CLAUDE.md`, after the "Native tasks are optional, the ledger is not." paragraph (line 71 and its continuation), add:
