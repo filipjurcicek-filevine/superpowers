@@ -157,15 +157,35 @@ upstream", and do not install this alongside upstream and expect this one to win
 
 ### Verify what is actually live
 
+**The two commands disagree, and only one of them answers this question.**
+
 ```bash
-claude plugin details superpowers@superpowers-cc
+claude plugin list      # the INSTALLED version — this is what your sessions run
+claude plugin details superpowers@superpowers-cc   # reads the marketplace manifest
 ```
 
-That prints the running version and a component inventory. This fork should show
-**15 skills**, **4 agents** (`code-reviewer`, `sdd-implementer`,
-`sdd-task-reviewer`, `sdd-re-reviewer`), and **2 hooks** (SessionStart,
-PreToolUse). If `agents` is 0 or `cross-reviewing-with-codex` is missing from the
-skill list, you are on a stale cache — bump and update.
+`details` reports the version in `.claude-plugin/marketplace.json`, which for a
+directory marketplace is your working tree. Bump the version and it says the new
+one immediately — before any cache has been updated and before any session sees
+the change. Measured: with the working tree at `6.2.1-cc.2` and the plugin not yet
+updated, `details` printed `6.2.1-cc.2` while `list` printed `6.2.1-cc.1`, and the
+edits were absent from `~/.claude/plugins/cache/superpowers-cc/`. Trust `list`.
+
+`details` is still the right tool for the **component inventory**, which does come
+from the manifest and the tree. This fork should show **15 skills**, **4 agents**
+(`code-reviewer`, `sdd-implementer`, `sdd-task-reviewer`, `sdd-re-reviewer`), and
+**2 hooks** (SessionStart, PreToolUse — two events, three scripts). If `agents` is
+0 or `cross-reviewing-with-codex` is missing, the manifests are wrong, not the
+cache.
+
+To confirm an edit reached what runs, grep the cache for it:
+
+```bash
+grep -rl "<a phrase you just added>" ~/.claude/plugins/cache/superpowers-cc/
+```
+
+No match means bump-and-update has not taken effect yet — and it will not until
+you restart Claude Code.
 
 `claude plugin validate .` checks the manifests before you commit a change to them.
 
