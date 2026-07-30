@@ -80,8 +80,8 @@ name a specific open problem or stop.
 *testament*, *underpin/underpins/underpinning*, *underscore/underscores/underscoring*,
 *vibrant*, *vital*
 
-Do not reach for these words; each has a plainer and more specific replacement, and
-they arrive in clusters.
+They arrive in clusters, and the cluster is the tell; a single apt use is not. Where
+one of them stands in for a plainer and more specific word, write the plainer word.
 
 ### Do not write "not just X, but Y"
 
@@ -119,6 +119,10 @@ Do not capitalize every main word in a heading; capitalize the first word and pr
 nouns only.
 
 ## Punctuation and formatting
+
+The rules on title case, bold, and inline-header bullet lists govern prose
+documents; skill files in this library use bold labels and inline headers as
+navigation deliberately.
 
 ### Do not bold for emphasis
 

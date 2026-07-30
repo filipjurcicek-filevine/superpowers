@@ -281,10 +281,12 @@ assert_context_matches \
     bash "$HOOK_UNDER_TEST"
 
 # The skill name lives in both the hook constant and the skills tree, so a rename
-# can break the pointer silently. `|| true` is required: with pipefail set, the
-# grep finds nothing during the RED run and would abort the suite before it
-# reports.
-pointer_ref="$(grep -o 'superpowers:[a-z][a-z-]*' "$HOOK_UNDER_TEST" | grep -v 'using-superpowers' | head -1 || true)"
+# can break the pointer silently. Read it off the pointer constant's own line: a
+# `superpowers:<skill>` reference added anywhere else in the hook must not be able
+# to satisfy this assertion while the pointer itself goes unchecked. `|| true` is
+# required: with pipefail set, the grep finds nothing during the RED run and would
+# abort the suite before it reports.
+pointer_ref="$(grep 'writing_style_pointer=' "$HOOK_UNDER_TEST" | grep -o 'superpowers:[a-z][a-z-]*' | head -1 || true)"
 pointer_skill="${pointer_ref#superpowers:}"
 if [[ -n "$pointer_skill" && -d "$REPO_ROOT/skills/$pointer_skill" ]]; then
     pass "writing-style pointer names an existing skill ($pointer_skill)"

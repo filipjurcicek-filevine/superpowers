@@ -12,12 +12,12 @@ of Strunk you already follow.
 ## Scope
 
 This governs prose you **author**: specs, plans, PR descriptions, review summaries,
-error messages, UI text. Not conversational turns. Never rewrite a quoted string
-another skill mandates — the consent question in superpowers:using-git-worktrees
-and the review-gate sentence in superpowers:brainstorming are decided wording, not
-drafts.
+review responses, error messages, UI text. Not ordinary conversational turns. Never
+rewrite a quoted string another skill mandates — the consent question in
+superpowers:using-git-worktrees and the review-gate sentence in
+superpowers:brainstorming are decided wording, not drafts.
 
-## The Six Rules
+## The six rules
 
 | Rule | Before → after |
 |---|---|
@@ -28,18 +28,21 @@ drafts.
 | Keep related words together | "The hook reads the file that fails open on error" → "The hook, which fails open on error, reads the file" |
 | Place the emphatic word last | "This runs at high effort, because a gate cannot think less" → "Because a gate cannot think less, this runs at high effort" |
 
-## Do Not Write
+## Do not write
 
-**Puffery:** pivotal, crucial, vital, testament, enduring legacy, robust, seamless,
+**Puffery** — a word that asserts importance instead of saying what the thing
+does: pivotal, crucial, vital, testament, enduring legacy, robust, seamless,
 groundbreaking, cutting-edge.
 
 **Empty `-ing` tails** — a clause that adds a claim instead of a fact: ensuring
 reliability, showcasing X, highlighting Y, underscoring Z.
 
-**AI vocabulary:** delve, leverage, multifaceted, foster, realm, tapestry,
-landscape, navigate.
+**AI vocabulary** — a cluster of these, or one of them where a plainer word
+belongs; one apt use is not the defect: delve, leverage, multifaceted, foster,
+realm, tapestry, landscape, navigate. In UI text, "Navigate to Settings" is the
+plain word.
 
-**Words that carry a condition.** The word is fine; one use of it is not.
+**Words with one bad use.** The word is fine; that use is not.
 
 - *case* meaning "an instance of": "in the case of a timeout" → "on timeout". "Test case" is fine.
 - *character*, *nature*, *system*, *factor*, *respective* used as filler: "of a technical character" → "technical".

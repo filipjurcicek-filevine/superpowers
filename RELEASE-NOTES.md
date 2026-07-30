@@ -10,20 +10,21 @@ First release-notes entry for a `-cc` fork revision; earlier ones were not logge
 - **`SUPERPOWERS_WRITING_STYLE=1` adds a routing pointer to every session**, off by default. It injects the pointer, not the rules; the hook reads no file, so the option adds no fail-open path. Thirteen new assertions in `tests/hooks/test-session-start.sh` cover the enable predicate, the negative values, that an enabled session carries both blocks in order, and that the default payload is the bootstrap and nothing else.
 - **Two reference files, not five.** The source skill's word-list section prescribed against singular *they*, which the harness requires; its "matters of form" section was 1918 manuscript typography; its seven grammar rules are ones Opus 5 already follows. `ai-writing-tells.md` distills 44,107 bytes of Wikipedia's "Signs of AI writing" into 21 imperative headings with the 11 watch lists that exist, dropping that guide's em-dash, curly-quote, and Markdown advice — Wikipedia house style that would have agents strip formatting this harness renders. It stays CC BY-SA 4.0; the package remains MIT.
 
-**Measured:** the shipped `SKILL.md` was micro-tested against a no-guidance control and against the source skill's longer form — three prompts, five reps per arm, every flagged match read by hand. The shipped 429-word form scored at or below the 514-word source form on every prompt, with both far below the control.
+**Measured:** `SKILL.md` was micro-tested against a no-style-skill control and against the source skill's longer form — three prompts, five reps per arm, every flagged match read by hand. The tested 452-word form scored at or below the 514-word source form on every prompt, with both far below the control.
 
 | Arm | prompt-1 spec | prompt-2 PR | prompt-3 review | total |
 |---|---|---|---|---|
-| A — no-guidance control | 9 | 4 | 9 | 22 |
+| A — no style skill | 9 | 4 | 9 | 22 |
 | B — source form (514 words) | 0 | 3 | 3 | 6 |
-| C — shipped form (429 words) | 0 | 0 | 1 | 1 |
+| C — tested form (452 words) | 0 | 0 | 1 | 1 |
 
 **The kill list is unmeasured, not validated.** The control arm was not
 guidance-free: the test workspace's `CLAUDE.md` imports anti-puffery rules, so arm
 A already ran with that guidance in context, and the kill list fired once in 45
-samples. What the test measured is the six rules — active voice, positive form,
-concrete language, omitting needless words — where the effect is large and
-consistent. In a workspace without those imported rules the kill list may carry
+samples. What the test measured is the six rules, where the effect is large and
+consistent. The kill list was also reworded after the test ran — the puffery and
+AI-vocabulary groups gained their defect conditions — and the rewording was not
+re-tested. In a workspace without those imported rules the kill list may carry
 more weight; nothing here shows that it does or does not.
 
 ## v6.2.0 (2026-07-23)

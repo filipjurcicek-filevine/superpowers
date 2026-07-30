@@ -194,7 +194,7 @@ you restart Claude Code.
 | Feature | Enable | Effect |
 |---|---|---|
 | Native task management | `CLAUDE_CODE_ENABLE_TASKS=1` | `blockedBy` dependency enforcement and a live task panel; activates the user-gate hook |
-| Writing style pointer | `SUPERPOWERS_WRITING_STYLE=1` | Adds a ~35-word pointer to `writing-clearly-and-concisely` to every session's context. Also accepts `true`, `yes`, `on`. The skill's rules are not injected — the pointer routes to them |
+| Writing style pointer | `SUPERPOWERS_WRITING_STYLE=1` | Adds a ~30-word pointer to `writing-clearly-and-concisely` to every session's context. Also accepts `true`, `yes`, and `on`, in any case. The skill's rules are not injected — the pointer routes to them |
 | Codex cross-review | [Codex CLI](https://github.com/openai/codex) on PATH | Spec, plan, and branch cross-review. Confirm it runs: `codex exec -s read-only -o /tmp/m "Reply OK" </dev/null` — a 400 about the model means the configured default is unusable, so pin one with `-c model=<name>` |
 
 ### Other harnesses
@@ -230,7 +230,7 @@ Two consequences worth knowing:
   any edit to it.
 
 With `SUPERPOWERS_WRITING_STYLE` enabled, a second block follows the bootstrap: a
-~35-word pointer to `writing-clearly-and-concisely`. The pointer is a constant in
+~30-word pointer to `writing-clearly-and-concisely`. The pointer is a constant in
 the hook, not a file read, and the skill's **body is not resident** — so
 `using-superpowers` remains the only skill whose full text is always in context,
 and the warning above still names one file.
