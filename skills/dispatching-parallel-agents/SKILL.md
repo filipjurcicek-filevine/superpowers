@@ -31,6 +31,7 @@ each its own agent, with context you construct rather than context it inherits.
 | Independent work, each agent decides its own steps | Multiple `Agent` calls in one message |
 | Broad read-only search across many files or naming conventions | `Explore` agents — they return conclusions, not file dumps |
 | Parallel edits that would conflict on disk | `Agent` with `isolation: "worktree"` |
+| A result you need before you can write the next line | `Agent` with `run_in_background: false` |
 | Deterministic fan-out: per-item pipelines, barriers, verify-each-finding, loop-until-dry | The `Workflow` tool |
 
 `Workflow` needs the user's explicit opt-in. When the shape genuinely calls for
@@ -69,6 +70,18 @@ Return: the root cause and what you changed.
 **Failure modes:** "fix all the tests" (agent gets lost); "fix the race
 condition" with no location; no constraints (agent refactors everything); no
 named return (you can't tell what changed).
+
+## While They Run
+
+Agents run in the background and notify you as each finishes, so the fan-out does
+not block you. Two rules follow from that:
+
+- **A pending agent has no result.** Do not write what it "found" or what it
+  "will probably show". If the user asks before the notification arrives, say it
+  is still running.
+- **`SendMessage` continues an agent** by id or name, with its context intact. A
+  fresh `Agent` call starts over — use it when you want a clean read, not when you
+  want a follow-up question answered.
 
 ## After They Return
 

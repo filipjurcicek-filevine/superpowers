@@ -1,7 +1,5 @@
 # Condition-Based Waiting
 
-## Overview
-
 Flaky tests often guess at timing with arbitrary delays. This creates race conditions where tests pass on fast machines but fail under load or in CI.
 
 **Core principle:** Wait for the actual condition you care about, not a guess about how long it takes.
@@ -106,10 +104,11 @@ await new Promise(r => setTimeout(r, 200));   // Then: wait for timed behavior
 2. Based on known timing (not guessing)
 3. Comment explaining WHY
 
-## Real-World Impact
+## Waiting Inside a Test vs Waiting Yourself
 
-From debugging session (2025-10-03):
-- Fixed 15 flaky tests across 3 files
-- Pass rate: 60% → 100%
-- Execution time: 40% faster
-- No more race conditions
+The patterns above are for code inside a test suite. When *you* are the one waiting
+— on a build, a server coming up, a background command — use the `Monitor` tool
+with an until-loop. Foreground `sleep` in Bash is blocked, and a poll-and-recheck
+turn loop costs a round trip per iteration.
+
+Same principle either way: name the condition, don't guess the duration.
