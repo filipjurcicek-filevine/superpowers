@@ -1,5 +1,12 @@
 # Skill authoring best practices
 
+> **Fork note.** This is Anthropic's official guidance, kept verbatim. Two parts of
+> it do not apply here: the multi-model testing matrix ("Tested with Haiku,
+> Sonnet, and Opus") and the advice to write instructions that work well across
+> model tiers. This fork targets one model and varies reasoning effort, so a
+> tier-portable skill would be paying for portability it never uses — see
+> "One model, varying effort" in the repo's `CLAUDE.md`. Everything else stands.
+
 > Learn how to write effective Skills that agents can discover and use successfully.
 
 Good Skills are concise, well-structured, and tested with real usage. This guide provides practical authoring decisions to help you write Skills that agents can discover and use effectively.

@@ -1,7 +1,5 @@
 # Defense-in-Depth Validation
 
-## Overview
-
 When you fix a bug caused by invalid data, adding validation at one place feels sufficient. But that single check can be bypassed by different code paths, refactoring, or mocks.
 
 **Core principle:** Validate at EVERY layer data passes through. Make the bug structurally impossible.

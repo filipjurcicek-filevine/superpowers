@@ -3,8 +3,6 @@
 **Load this reference when:** writing or changing tests, adding mocks, or
 adding cleanup/helper methods for tests.
 
-## Overview
-
 A test exists to catch a specific break. Two principles govern everything
 here:
 

@@ -2,11 +2,10 @@
 
 **Load this reference when:** creating or editing skills, before deployment, to verify they work under pressure and resist rationalization.
 
-## Overview
-
-**Testing skills is just TDD applied to process documentation.**
-
-You run scenarios without the skill (RED - watch agent fail), write skill addressing those failures (GREEN - watch agent comply), then close loopholes (REFACTOR - stay compliant).
+**Testing skills is just TDD applied to process documentation.** Run scenarios
+without the skill (RED — watch the agent fail), write the skill addressing those
+failures (GREEN — watch it comply), then close loopholes (REFACTOR — stay
+compliant).
 
 **Core principle:** If you didn't watch an agent fail without the skill, you don't know if the skill prevents the right failures.
 
@@ -179,7 +178,12 @@ Agent violated rule despite having the skill? This is like a test regression - y
 
 For each new rationalization, add:
 
-### 1. Explicit Negation in Rules
+### 1. Close the Workaround Inside the Rule
+
+Name the workaround in the rule and carry the reason it fails. A prohibition list
+appended to the rule states the same thing four times and invites negotiation with
+each item — see SKILL.md, "State the rule once, in the form that closes the
+workaround".
 
 <Before>
 ```markdown
@@ -189,13 +193,9 @@ Write code before test? Delete it.
 
 <After>
 ```markdown
-Write code before test? Delete it. Start over.
-
-**No exceptions:**
-- Don't keep it as "reference"
-- Don't "adapt" it while writing tests
-- Don't look at it
-- Delete means delete
+When you already wrote the code first, delete it and rebuild from the tests —
+keeping it as reference means adapting it, which produces the implementation
+without the failing test.
 ```
 </After>
 
@@ -207,16 +207,13 @@ Write code before test? Delete it. Start over.
 | "Keep as reference, write tests first" | You'll adapt it. That's testing after. Delete means delete. |
 ```
 
-### 3. Red Flag Entry
+Exactly one table, and only excuses you observed. Do not also add a red-flags list
+of the same items — that is the same content twice, and it teaches the reader to
+skim. A red-flags list earns its place only when it names *different* signals:
+observable states rather than thoughts ("three fixes have failed", "the diff has
+no test file").
 
-```markdown
-## Red Flags - STOP
-
-- "Keep as reference" or "adapt existing code"
-- "I'm following the spirit not the letter"
-```
-
-### 4. Update description
+### 3. Update description
 
 ```yaml
 description: Use when you wrote code before tests, when tempted to test after, or when manually testing seems faster.
@@ -365,20 +362,3 @@ Tests pass once ≠ bulletproof.
 | **Verify GREEN** | Re-test scenarios | Agent follows rule under pressure |
 | **REFACTOR** | Close loopholes | Add counters for new rationalizations |
 | **Stay GREEN** | Re-verify | Agent still complies after refactoring |
-
-## The Bottom Line
-
-**Skill creation IS TDD. Same principles, same cycle, same benefits.**
-
-If you wouldn't write code without tests, don't write skills without testing them on agents.
-
-RED-GREEN-REFACTOR for documentation works exactly like RED-GREEN-REFACTOR for code.
-
-## Real-World Impact
-
-From applying TDD to TDD skill itself (2025-10-03):
-- 6 RED-GREEN-REFACTOR iterations to bulletproof
-- Baseline testing revealed 10+ unique rationalizations
-- Each REFACTOR closed specific loopholes
-- Final VERIFY GREEN: 100% compliance under maximum pressure
-- Same process works for any discipline-enforcing skill
