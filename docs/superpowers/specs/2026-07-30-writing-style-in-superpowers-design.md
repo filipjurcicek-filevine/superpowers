@@ -295,6 +295,20 @@ all deliberate:
   carries for all 16 skills, which is why the six explicit call sites matter more
   than the option does.
 
+**The six call sites are the target of this change; the option is a convenience.**
+That was decided explicitly, against two alternatives. Injecting the rules
+themselves would put them in context unconditionally, but the text would have to
+exist in both the hook and `SKILL.md` — the block is absent in a default session,
+so the skill must stay self-sufficient — which is two copies drifting
+independently. Measured, it would also add ~400 words to the 641 words of
+always-resident library text (`using-superpowers` 283 + fifteen descriptions 358).
+The other alternative, an `@`-imported rules file in a workspace `CLAUDE.md`, does
+give unconditional residency with one copy of the rules, and is the better
+mechanism when a single workspace is the scope — but it does not travel with the
+plugin, which is what this change is for. Prose authored outside the six flows
+therefore goes unstyled unless the agent acts on the pointer. That is the accepted
+cost, not an open question.
+
 **Fail-open paths.** The hook runs under `set -euo pipefail`. Because the pointer
 is a constant, the option adds no file read and therefore no new failure mode:
 
