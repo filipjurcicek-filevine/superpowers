@@ -2,7 +2,7 @@
 name: sdd-task-reviewer
 description: Reviews one task's diff for spec compliance and code quality under subagent-driven development. Dispatched by superpowers:subagent-driven-development; not for direct invocation.
 model: inherit
-effort: high
+effort: medium
 tools: Read, Glob, Grep, Bash
 ---
 

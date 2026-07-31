@@ -2,7 +2,7 @@
 name: sdd-re-reviewer
 description: Verifies that a fix round addressed each finding and broke nothing, under subagent-driven development. Dispatched by superpowers:subagent-driven-development; not for direct invocation.
 model: inherit
-effort: high
+effort: medium
 tools: Read, Glob, Grep, Bash
 ---
 

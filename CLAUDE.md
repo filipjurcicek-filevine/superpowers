@@ -33,29 +33,18 @@ per-call `effort`, which is precisely why the tier has to live in the definition
 it is the only place a dispatch cannot quietly drop it. When a single dispatch
 genuinely needs a different tier, that is what the `Workflow` tool is for.
 
-**Two tiers, and the predicate for a third.** Authors and task-scoped gates run
-`high`; the whole-branch gate runs `xhigh`. The distinction is breadth of
-judgment, and it is the only one with a basis — an earlier four-role, three-tier
-gradient was inherited from the model-tier scheme it replaced, where the tiers
-tracked *price*. Effort is not a price axis, so the gradient carried no meaning
-across.
-
-A lower tier qualifies only when all three hold:
-
-1. The work is mechanical rather than a judgment call.
-2. It is high-volume or latency-sensitive enough for the saving to matter.
-3. Something downstream verifies it.
-
-**A gate never qualifies** — a gate *is* the downstream check, and one that thinks
-less is one that agrees more. That disqualifies every reviewer here, including the
-scoped re-reviewer: it looks narrow, but ruling on whether a defect survived
-someone's attempt to fix it is subtler than reviewing fresh code.
+**Two tiers, on judgment versus execution.** Planning and every gate run
+`medium`; code implementation runs `low`. The distinction is whether the role
+*rules* on something or *carries out* something already decided. A reviewer
+decides whether work is correct, so it gets the higher tier — including the
+scoped re-reviewer, which looks narrow but has to rule on whether a defect
+survived someone's attempt to fix it. The implementer works from a task brief
+that already names the files and the code, and everything it produces is
+checked by a gate, so it runs `low`.
 
 Note where the mechanical work actually went: `task-brief`, `review-package`, and
 `sdd-workspace` are shell scripts. Deterministic work belongs in code, where it
-beats every effort tier at every price — which is why no agent here runs below
-`high`. `medium` and `low` are for `Workflow` pipeline stages (per-item transforms
-with a verify stage after them) if such a flow is ever added.
+beats every effort tier at every price.
 
 **Roles are agent definitions, not paste-in templates.** A dispatch carries
 variables (file paths, constraints, findings), never the role's instructions.

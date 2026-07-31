@@ -2,7 +2,7 @@
 name: code-reviewer
 description: Senior code reviewer for a completed change — reviews a diff against its requirements and reports findings by severity. Dispatched by superpowers:requesting-code-review and by the final review in subagent-driven-development.
 model: inherit
-effort: xhigh
+effort: medium
 tools: Read, Glob, Grep, Bash
 ---
 

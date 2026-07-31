@@ -65,7 +65,7 @@ summarization, so a long run resumes instead of re-doing finished work. *Gate 3:
 the loop stops for you on a plan contradiction or a load-bearing finding it
 cannot resolve.*
 
-**Implementation → integration.** A whole-branch review at `xhigh` effort, plus a
+**Implementation → integration.** A whole-branch review at `medium` effort, plus a
 Codex branch review, then one fix wave. *Gate 4: you choose merge, PR, or keep.*
 
 Every finding from an outside model is a claim until it is checked against the

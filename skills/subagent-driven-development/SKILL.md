@@ -119,10 +119,10 @@ instructions yourself, and do not paste role templates into prompts.
 
 | Role | Agent type | Effort | Tools |
 |------|-----------|--------|-------|
-| Implementer — a task, a fix round, or the final fix wave | `superpowers:sdd-implementer` | high | full |
-| Task reviewer | `superpowers:sdd-task-reviewer` | high | read-only |
-| Scoped re-reviewer — a task fix round or the final fix wave | `superpowers:sdd-re-reviewer` | high | read-only |
-| Final whole-branch reviewer | `superpowers:code-reviewer` | xhigh | read-only |
+| Implementer — a task, a fix round, or the final fix wave | `superpowers:sdd-implementer` | low | full |
+| Task reviewer | `superpowers:sdd-task-reviewer` | medium | read-only |
+| Scoped re-reviewer — a task fix round or the final fix wave | `superpowers:sdd-re-reviewer` | medium | read-only |
+| Final whole-branch reviewer | `superpowers:code-reviewer` | medium | read-only |
 
 These four are the only agent types that may receive a workspace artifact path.
 A dispatch whose prompt carries a `.superpowers/sdd/` path under any other type
@@ -138,12 +138,11 @@ constraints, findings — never the role's instructions.
 effort, and the agent definitions set it. Per-call effort is not settable through
 the Agent tool, so do not try to override it in a dispatch.
 
-Two tiers, on one distinction: breadth of judgment. Authors and task-scoped gates
-run `high`; the whole-branch gate runs `xhigh` because it holds the entire change
-and owns merge readiness. Nothing here runs lower. A scoped re-review looks
-narrow, but deciding whether a specific defect *still exists* after someone
-attempted to remove it is subtler than reviewing fresh code, and it is the last
-check before a task is marked clean.
+Two tiers, on one distinction: judgment versus execution. Every gate runs
+`medium` — the task reviewer, the scoped re-reviewer, and the whole-branch
+reviewer alike, because each one rules on whether work is correct. The
+implementer runs `low`: it works from a task brief that already contains the
+file paths and the code, and a gate checks everything it produces.
 
 **Escalation.** Rounds 4-5 of the fix loop escalate by fresh context plus
 explicit framing (below), not by a bigger model. When a round genuinely needs a

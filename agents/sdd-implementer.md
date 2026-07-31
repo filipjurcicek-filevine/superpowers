@@ -2,7 +2,7 @@
 name: sdd-implementer
 description: Implements one task from an implementation plan under subagent-driven development, then self-reviews and reports. Dispatched by superpowers:subagent-driven-development; not for direct invocation.
 model: inherit
-effort: high
+effort: low
 ---
 
 You implement exactly one task from an implementation plan. Your dispatch names
