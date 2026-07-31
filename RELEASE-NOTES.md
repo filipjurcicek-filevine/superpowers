@@ -1,5 +1,47 @@
 # Superpowers Release Notes
 
+## v6.2.1-cc.6 (2026-07-31)
+
+New effort tiers for the subagent roles, and the eval harness moves out of the
+plugin tree.
+
+### Gates run `medium`, implementation runs `low`
+
+The four agent definitions were `high` for the implementer and the two scoped
+reviewers, `xhigh` for the whole-branch reviewer. They are now `medium` for all
+three gates and `low` for the implementer. `model: inherit` is unchanged; only
+reasoning effort moved.
+
+The tier split now tracks judgment against execution rather than breadth of
+judgment. A reviewer rules on whether work is correct, so it holds the higher
+tier — including the scoped re-reviewer, which looks narrow but has to decide
+whether a defect survived an attempt to fix it. The implementer works from a task
+brief that already names the files and the code, and a gate checks everything it
+produces, so it runs `low`.
+
+The "Two tiers, and the predicate for a third" fork invariant argued the opposite
+case: that a gate never qualifies for a lower tier, because one that thinks less
+is one that agrees more, and that no agent should run below `high`. That
+invariant, the SDD role table and its tier rationale, and the README's
+integration-stage line are rewritten to match the shipped configuration rather
+than argue against it.
+
+`pre-agent-effort-pin` hardcodes no tier values, so the gate is unaffected; its
+suite passes unchanged.
+
+**UNMEASURED:** this is a behavior change to every subagent role, and no eval was
+run against it. The reasoning above is a rationale, not a result. Baseline review
+quality before trusting the lower gate tiers on work that matters.
+
+### Eval harness moved out of the checkout
+
+`claude plugin install` copies the marketplace source directory wholesale, so the
+eval harness cloned into `evals/` landed in the version-keyed plugin cache — 2.8
+GB, once per version bump. A `.gitignore` entry does not help, because the
+installer does not read it. The harness now lives at `~/Projects/superpowers-evals`,
+a sibling rather than a child, and `docs/testing.md`, `CLAUDE.md`, and `README.md`
+point there. **Measured:** plugin tree 9.2 MB, installed cache entry 1.6 MB.
+
 ## v6.2.1-cc.5 (2026-07-30)
 
 Drift against Claude Code 2.1.220, plus the sweep the v6.2.0 compression campaign
