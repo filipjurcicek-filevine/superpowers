@@ -7,20 +7,66 @@ description: Use before any creative work — creating a feature, building a com
 
 Turn an idea into a design and a written spec through collaborative dialogue.
 
-Understand the project context, ask until you know what you are building, then
-present the design and get approval.
+Classify how much process the request needs, work that path, then present the
+design and get approval.
 
 <HARD-GATE>
 Do not write code, scaffold a project, invoke an implementation skill, or take
-any other implementation action until you have presented a design and the user
-has approved it. This holds for every project, including the ones that look too
-simple to need it — those are where unexamined assumptions cost the most. The
-design can be three sentences; it still gets presented and approved.
+any other implementation action until you have presented what you intend to do
+and the user has approved it. This holds on every path below, including the
+requests that look too simple to need it — those are where unexamined
+assumptions cost the most. The ceremony scales with the task; the approval gate
+never does. The design can be three sentences; it still gets presented and
+approved.
 </HARD-GATE>
 
-## Checklist
+## Three Paths
 
-`TaskCreate` one task per item and complete them in order:
+Classify the request before your first question, and name the path you picked so
+the user can override it: "this looks bounded, so I will present a short design
+here instead of writing a spec".
+
+| Path | The request | What it produces |
+|------|-------------|------------------|
+| **Spike** | a feasibility question — "can we", "is it possible", "quick and dirty is fine" | an answer, not code you keep |
+| **Bounded** | a well-scoped change to a flow that already exists in this repo: a flag, a small endpoint, a one-file fix | a short design in chat, then implementation |
+| **Architectural** | a new project, a new subsystem, or a change that restructures how components fit together or alters interfaces others depend on | approaches, a design, a committed spec, then writing-plans |
+
+When two paths both fit, take the heavier one. The ratchet is one-way: hidden
+complexity found mid-task upgrades the path — stop, say so, and step up. Nothing
+downgrades mid-task, and each new request gets its own classification.
+
+## Common Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| "I'll call it bounded and skip the spec" | Reaching for the lighter label is the doubt itself. Take the heavier path. |
+| "I know this kind of app, so it's bounded" | Bounded measures the repo, not your familiarity. No existing flow to read means architectural. |
+| "The design is obvious — I'll start while they read it" | The gate is the approval, not the design's length. Present it, then stop until you hear yes. |
+| "The spike works, so I'll keep the code" | A spike produces an answer. Keeping the code is a new request; classify it. |
+| "It grew, but I'm nearly done — no need to re-classify" | Hidden complexity upgrades the path mid-task. Stop and say so. |
+
+## Checklists
+
+`TaskCreate` one task per item on your path and complete them in order.
+
+**Spike:**
+
+1. **Explore project context** — enough to frame the probe
+2. **Present the question and the probe** — 2-3 sentences
+3. **Get approval** — a nod is enough
+4. **Investigate** — as cheaply as correctness allows
+5. **Report findings** — a recommendation; label anything you built as throwaway
+
+**Bounded:**
+
+1. **Explore project context** — files, docs, recent commits
+2. **Ask the clarifying questions that matter** — one topic at a time
+3. **Present a short design in chat** — approach, files touched, testing
+4. **Get approval** — stop and wait for an explicit yes
+5. **Implement** — the normal development workflow, TDD included; no spec file, no plan document
+
+**Architectural:**
 
 1. **Explore project context** — files, docs, recent commits
 2. **Ask clarifying questions** — purpose, constraints, success criteria
@@ -32,8 +78,15 @@ design can be three sentences; it still gets presented and approved.
 8. **User reviews the written spec**
 9. **Hand off** — invoke superpowers:writing-plans
 
-**The terminal state is invoking writing-plans.** Not frontend-design, not
-mcp-builder, not any other implementation skill.
+**The terminal state follows the path.** Architectural ends by invoking
+writing-plans — not frontend-design, not mcp-builder, not any other
+implementation skill. Bounded ends in implementation, with no plan document. A
+spike ends in a reported recommendation.
+
+The sections below serve bounded and architectural work. **Exploring Approaches**
+onward is architectural depth: for bounded work, context plus a few questions
+plus a short design in chat is the whole process. A spike stops once its probe is
+approved.
 
 ## Asking Questions
 
@@ -113,7 +166,7 @@ A question about a UI *topic* is not automatically a visual question. "What does
 personality mean here?" is conceptual — just ask it. "Which of these two wizard
 layouts?" is visual — show it.
 
-## After the Design
+## After the Design (architectural)
 
 **Write the spec** to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` (user
 preferences for location override this). **REQUIRED SUB-SKILL:** Use
