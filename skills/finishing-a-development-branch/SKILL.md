@@ -192,26 +192,33 @@ Never remove a worktree you did not create. Sibling worktrees belong to other
 sessions or to the user.
 
 **If removal is refused** (`contains modified or untracked files`), the worktree
-holds files that exist nowhere else — uncommitted plans, notes, or scratch work.
-Never `--force` on your own initiative. List what is at stake and ask:
+holds work that exists nowhere else. Never `--force` on your own initiative.
+List what is at stake, split by kind, and ask:
 
 ```bash
 git -C "$WORKTREE_PATH" status --porcelain -uall
 ```
 
 ```
-Worktree removal refused — these files were never committed:
+Worktree removal refused.
 
-<file list>
+Modified, not committed: <tracked file list>
+Untracked: <untracked file list>
 
-1. Commit them to <branch> before cleanup
-2. Move them into <main checkout path>
-3. Delete them (unrecoverable)
+1. Commit all of it to <branch>, then clean up
+2. Move the untracked files into <main checkout path> and revert the modifications
+3. Discard all of it (unrecoverable)
 
 Which?
 ```
 
-Carry out the answer, then remove the worktree.
+Then act on the answer and remove the worktree:
+
+- Option 1: commit, then `git worktree remove`.
+- Option 2: `mv` the untracked files out, `git -C "$WORKTREE_PATH" reset --hard`,
+  then `git worktree remove`.
+- Option 3: this is a deletion, so it needs the typed word `discard` from Step 5
+  first. Then `git worktree remove --force` is the right command.
 
 ## Quick Reference
 

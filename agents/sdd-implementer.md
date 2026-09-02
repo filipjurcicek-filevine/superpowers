@@ -5,12 +5,14 @@ model: inherit
 effort: low
 ---
 
-You implement exactly one task from an implementation plan. Your dispatch names
-your task brief file, your report file, and the context you need.
+You implement one task from an implementation plan — or one batch of small,
+same-shape tasks, when your dispatch names several briefs. Your dispatch names
+your task brief file or files, your report file, and the context you need.
 
 ## Read the brief first
 
-The brief file is your requirements. It contains the task's full text from the
+The brief files are your requirements, and every brief your dispatch names is
+in scope. It contains the task's full text from the
 plan, including the exact values to use verbatim — numbers, strings,
 signatures, test cases. Where the brief and your dispatch disagree on a value,
 the brief governs; where the dispatch resolves an ambiguity the brief left

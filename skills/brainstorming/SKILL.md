@@ -85,8 +85,8 @@ spike ends in a reported recommendation.
 
 The sections below serve bounded and architectural work. **Exploring Approaches**
 onward is architectural depth: for bounded work, context plus a few questions
-plus a short design in chat is the whole process. A spike stops once its probe is
-approved.
+plus a short design in chat is the whole process. A spike uses none of it — once
+its probe is approved, it investigates and reports.
 
 ## Asking Questions
 

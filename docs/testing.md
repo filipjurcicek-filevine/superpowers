@@ -34,6 +34,9 @@ Live in `tests/`. Every suite here runs offline and in seconds:
   matching.
 - `tests/shell-lint/test-lint-shell.sh` — the lint wrapper itself (needs
   `shellcheck` and `shfmt` on PATH to lint for real).
+- `tests/writing-skills/test-render-graphs.sh` — `render-graphs.js` loads as an
+  ES module and renders a fixture diagram (the rendering assertions skip when
+  `graphviz` is absent).
 
 Slower, LLM-driven suites that are not part of a normal run:
 

@@ -30,8 +30,10 @@ conflicts, the ambiguities, the plan defects, and the caps you would otherwise
 have asked to exceed. The spec is the binding authority, the plan is its
 argument, and your judgment settles what neither answers. Record every decision
 in the ledger as `Ruling: <what you decided> — <why> — <cost if wrong>`, then
-carry on. A wrong ruling costs rework the user can see and undo; a session
-parked on a question costs the user a day and buys nothing.
+carry on. Every ruling takes that form, wherever it is written: a preflight
+table row, a parked finding, a breaker adjudication. A wrong ruling costs rework
+the user can see and undo; a session parked on a question costs the user a day
+and buys nothing.
 
 Four things stop you, and only these:
 
@@ -134,10 +136,12 @@ agrees with itself — the tests it specifies against the code it specifies, the
 files it creates against the files it later touches. "The scan is clean" without
 those rows is not a scan you ran.
 
-Write the table to the ledger. Rule on every conflict it surfaces before
-execution begins — the spec binds, the plan argues — record each ruling beside
-its row, and dispatch Task 1. If the scan is clean, proceed without comment. The
-review loop remains the net for conflicts that only emerge from implementation.
+Write the table to the ledger, clean rows included — the rows are the evidence
+that the scan happened. Rule on every conflict it surfaces before execution
+begins, the spec binding and the plan arguing, record each ruling beside its row
+in the form above, and dispatch Task 1. Say nothing to the user about a clean
+scan. The review loop remains the net for conflicts that only emerge from
+implementation.
 
 ## Dispatch Roles
 
@@ -185,6 +189,13 @@ per task. Compose ONE dispatch listing every file and its change, send the whole
 batch to a single implementer, and review its diff as one unit. Keep
 one-dispatch-per-task for work that needs its own judgment, its own tests, or its
 own review surface.
+
+A batch runs the loop once, not once per task: run `scripts/task-brief PLAN_FILE N`
+for every task in the batch and pass every brief path in the one dispatch, review
+the whole diff with one task reviewer, then write one ledger line naming the range
+(`Tasks <N>-<M>: complete (commits <base7>..<head7>, review clean)`) and
+`TaskUpdate` each of those native tasks. Never re-enter the loop for a task the
+batch already covered.
 
 Everything you paste into a dispatch prompt — and everything a subagent prints
 back — stays resident in your context for the rest of the session and is re-read
@@ -343,14 +354,14 @@ dispatching and adjudicate each open finding yourself — you hold the plan and
 cross-task context the reviewer lacks:
 
 - **Reviewer is wrong, or the point is contestable:** park it —
-  `Task <N>: parked — <finding> — Ruling: <why the code stands>`. The final review
-  sees both sides.
+  `Task <N>: parked — <finding> — Ruling: <why the code stands> — <cost if wrong>`.
+  The final review sees both sides.
 - **Real, but nothing downstream builds on it:** park it the same way, with a
   ruling that says it's real and deferred.
 - **Real and load-bearing** — a later task builds on it, or it reveals a plan
   defect: rule on the smallest change that unblocks the dependent work, ledger it
-  as `Task <N>: Ruling: <finding> — <what you decided and why>`, and carry it into
-  the next task's dispatch. Parking a structural failure silently lets every
+  as `Task <N>: Ruling: <what you decided> — <why> — <cost if wrong>`, and carry
+  it into the next task's dispatch. Parking a structural failure silently lets every
   dependent task build on it. Stop only when the defect leaves every path forward
   a guess.
 
@@ -360,16 +371,17 @@ forbidden.
 
 ### 5. Complete the task
 
-When the review comes back clean — or every open finding is parked with a ruling
-at the cap — append the completion line to the ledger in the same message as your
-other bookkeeping:
+When the review comes back clean — or every open finding at the cap is parked or
+ruled and carried forward — append the completion line to the ledger in the same
+message as your other bookkeeping:
 
 - `Task <N>: complete (commits <base7>..<head7>, review clean)`
-- `Task <N>: complete (commits <base7>..<head7>, <K> parked)` after a tripped breaker
+- `Task <N>: complete (commits <base7>..<head7>, <K> parked, <R> ruled)` after a
+  tripped breaker
 
 Then `TaskUpdate` it to `completed` and move on. Never move to the next task
-while the review has open Critical/Important issues that are neither fixed nor
-parked-with-ruling at the cap.
+while the review has open Critical/Important issues that are neither fixed nor,
+at the cap, parked or ruled.
 
 ## Final Review
 
@@ -452,6 +464,7 @@ You: I'm using Subagent-Driven Development to execute this plan.
 [Read plan file once: docs/superpowers/plans/feature-plan.md]
 [Resolve workspace: scripts/sdd-workspace <plan> — no ledger inside, fresh start]
 [TaskCreate for all plan tasks, with blockedBy for real dependencies]
+[Ledger: preflight table — Tasks 1+2 share src/recovery.js: produces/consumes agree; each task self-consistent; no conflicts]
 
 Task 1: Hook installation script
 
@@ -505,6 +518,7 @@ Re-reviewer: Missing progress reporting — ADDRESSED (src/recovery.js:41).
 [review-package PLAN MERGE_BASE HEAD; dispatch superpowers:code-reviewer]
 Final reviewer: All requirements met. Deferred minors triaged: none block merge.
 
+[Final message: "Rulings I made" — every Ruling: line from the ledger, in order]
 [Delete this plan's workspace — the record now lives in git]
 
 Done! Using superpowers:finishing-a-development-branch.

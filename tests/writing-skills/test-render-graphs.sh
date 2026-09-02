@@ -84,6 +84,9 @@ if ! command -v dot >/dev/null 2>&1; then
   echo "  [SKIP] rendering tests — graphviz (dot) is not installed"
   echo
   echo "Results: $PASSES passed, $FAILURES failed"
+  if [[ "$FAILURES" -gt 0 ]]; then
+    exit 1
+  fi
   exit 0
 fi
 

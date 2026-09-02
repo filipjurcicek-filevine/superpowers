@@ -67,7 +67,9 @@ downgrades it. The approval gate holds on every path — only the ceremony scale
   instead of `which dot`. `tests/writing-skills/test-render-graphs.sh` covers
   it, and skips the rendering assertions when Graphviz is absent.
 - `finishing-a-development-branch` handles a refused `git worktree remove`. It
-  lists the uncommitted files and asks, instead of reaching for `--force`.
+  lists the modified and the untracked files separately, offers three options
+  that each really unblock the removal, and asks — instead of reaching for
+  `--force`.
 - The task reviewer re-reads evidence it finds illegible, instead of re-running
   the test suite to regenerate it.
 - `.gitignore` covers Python build artifacts.

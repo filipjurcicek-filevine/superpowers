@@ -203,15 +203,15 @@ subagent-driven-development, and in your summary to the user otherwise. A findin
 that vanishes without a ruling is indistinguishable from one you did not want to
 deal with.
 
-**A confirmed finding that contradicts an approved decision is the user's call,
-not yours.** When the spec or plan deliberately chose what the reviewer objects
-to, present the finding beside that decision and ask which governs. Do not quietly
-redesign an approved spec because a second model disagreed with it.
+**A confirmed finding that contradicts an approved decision is not yours to
+overrule.** Never quietly redesign an approved spec because a second model
+disagreed with it.
 
-At site 3, inside a running plan, that finding is plan-mandated: the controller
-rules on it under superpowers:subagent-driven-development and the ruling reaches
-the user at Finish. Sites 1 and 2 ask, because the user is reviewing the artifact
-at that moment.
+At sites 1 and 2 the call is the user's, because they are reviewing that artifact
+at that moment: present the finding beside the decision it contradicts and ask
+which governs. At site 3, inside a running plan, the finding is plan-mandated:
+the controller rules on it under superpowers:subagent-driven-development, and the
+ruling reaches the user at Finish.
 
 ### Predictable false positives
 
