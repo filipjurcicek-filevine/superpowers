@@ -1,5 +1,10 @@
 # Superpowers Release Notes
 
+## v6.2.1-cc.8 (2026-09-02)
+
+Fixes the plugin description, which still said "Codex cross-review". No skill
+content changed.
+
 ## v6.2.1-cc.7 (2026-09-02)
 
 Cursor on the latest Grok model is now the default cross-reviewer.
