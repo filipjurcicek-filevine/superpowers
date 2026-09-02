@@ -13,3 +13,9 @@ triage/
 # the version-keyed plugin cache — 2.8 GB per version bump, observed. This entry
 # stays as a backstop in case one gets cloned here anyway.
 evals/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
