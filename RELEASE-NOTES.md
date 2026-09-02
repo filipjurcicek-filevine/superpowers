@@ -1,5 +1,77 @@
 # Superpowers Release Notes
 
+## v6.2.1-cc.9 (2026-09-02)
+
+Ports the parts of upstream v6.3.0 that apply to this fork. The harness support
+(Devin, Hermes, Grok Build), the Codex subagent mechanics, and the upstream
+manifests stay out.
+
+### The controller rules instead of stalling
+
+`subagent-driven-development` no longer stops for the user on plan conflicts.
+The controller decides them, records `Ruling: <what you decided> — <why> —
+<cost if wrong>` in the ledger, and carries on. Four things still stop it: an
+irreversible or destructive operation, a security-sensitive action, a side
+effect outside the worktree that norms say you ask about first, and a plan so
+broken that every path forward is a guess. Upstream reports a donated session
+that sat blocked for nine hours on a question the controller could have decided.
+
+Two rules follow from it. The pre-dispatch conflict scan now writes a table to
+the ledger — one row per task pair that shares a file or an interface, one row
+per task for self-agreement — because "the scan is clean" without those rows is
+not a scan. And `Finish` collects every `Ruling:` line into the final message
+under "Rulings I made", so decisions taken on the user's behalf reach them
+before the workspace is deleted.
+
+### Plans carry a Spec pointer
+
+The plan header gained a `**Spec:**` field, and SDD reads that spec at setup.
+The spec is the authority the plan argues from, so a conflict inside the plan
+resolves against it. Rulings made with no reachable spec are provisional, and
+the ledger says so.
+
+### Small same-shape tasks batch into one dispatch
+
+A plan with twelve one-line edits of the same kind now gets one implementer and
+one review, not twelve of each. The task reviewer checks a batched brief file by
+file: a listed file with no hunk in the diff is a Missing finding.
+
+### The implementer does not dispatch subagents
+
+`sdd-implementer` never dispatches a subagent, and above all never dispatches a
+reviewer. Every reviewer a worker spawned duplicated the review the controller
+dispatched anyway — a full extra review seat per task. The three reviewer agents
+need no such rule, because their tool sets exclude the Agent tool already.
+
+### Brainstorming classifies the request
+
+`brainstorming` now picks one of three paths and names it, so the user can
+override it:
+
+- **Spike** — a feasibility question. It produces an answer, not code you keep.
+- **Bounded** — a scoped change to a flow that already exists in this repo. It
+  produces a short design in chat, then implementation. No spec, no plan
+  document.
+- **Architectural** — unchanged: approaches, a design, a committed spec, then
+  `writing-plans`.
+
+Bounded measures the repo, not your familiarity. When two paths both fit, take
+the heavier one; hidden complexity upgrades the path mid-task, and nothing
+downgrades it. The approval gate holds on every path — only the ceremony scales.
+
+### Fixes
+
+- `render-graphs.js` used `require` in a package marked `"type": "module"`, so
+  every run died with `ReferenceError: require is not defined`. It now uses ESM
+  imports and `execFileSync`, and it probes for Graphviz by running `dot -V`
+  instead of `which dot`. `tests/writing-skills/test-render-graphs.sh` covers
+  it, and skips the rendering assertions when Graphviz is absent.
+- `finishing-a-development-branch` handles a refused `git worktree remove`. It
+  lists the uncommitted files and asks, instead of reaching for `--force`.
+- The task reviewer re-reads evidence it finds illegible, instead of re-running
+  the test suite to regenerate it.
+- `.gitignore` covers Python build artifacts.
+
 ## v6.2.1-cc.8 (2026-09-02)
 
 Fixes the plugin description, which still said "Codex cross-review". No skill
