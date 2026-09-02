@@ -67,6 +67,10 @@ Task Right-Sizing above sizes the *task*; this sizes the *steps* inside it.
 
 **Tech Stack:** [Key technologies/libraries]
 
+**Spec:** [path to the spec this plan implements — the plan argues from the
+spec, so the spec travels with it. Executors read both, and they resolve a
+conflict inside the plan against the spec.]
+
 ## Global Constraints
 
 [The spec's project-wide requirements — version floors, dependency limits,
