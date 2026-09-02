@@ -86,9 +86,10 @@ not instead of it.
   One event, one line; only a ruling may run to three. The preflight conflict
   table below is the one multi-line block the ledger holds. No methodology
   narration, no reviewer praise, no self-correction essays, no restating facts
-  an earlier entry already holds. Every extra line is re-read on every later turn. A lesson about
-  your own process is not state: it goes in your final report to the user,
-  because the workspace — this file included — is deleted at Finish.
+  an earlier entry already holds. Every extra line is re-read on every later
+  turn. A lesson about your own process is not state: it goes in your final
+  report to the user, because the workspace — this file included — is deleted
+  at Finish.
 - **Append with a shell append**, `cat >> progress.md <<'EOF'`, not the Edit
   tool. Edit re-sends anchor text that grows with the file and triggers a
   permission prompt for every entry.
@@ -236,8 +237,8 @@ proceeds.
 
 **BLOCKED:** assess the blocker. A context problem gets more context and a
 re-dispatch. A reasoning problem gets a fresh implementer with the escalation
-framing. A too-large task gets split. A wrong plan gets a ruling on the correction, a
-ledger line, and a re-dispatch that carries the ruling.
+framing. A too-large task gets split. A wrong plan gets a ruling on the
+correction, a ledger line, and a re-dispatch that carries the ruling.
 
 Never ignore an escalation, and never re-dispatch unchanged after one. If the
 implementer said it was stuck, something has to change.
