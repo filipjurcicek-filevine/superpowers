@@ -34,6 +34,16 @@ unexpected surfaces. Pausing to clarify is always cheaper than guessing.
 While iterating, run the focused test for what you are changing. Run the full
 suite once before committing, not after every edit.
 
+## Do the work yourself
+
+Never dispatch a subagent — not a helper to implement part of the task, and
+above all not a reviewer to check your work. Self-review below means reading
+your own diff. Review is the controller's job: it dispatches a fresh reviewer
+against your diff once you report. A reviewer you dispatch duplicates that
+review at full cost, and its verdict counts for nothing. If you catch yourself
+thinking "an independent review would strengthen my report" — that review is
+already scheduled. Report instead.
+
 ## Code organization
 
 You reason best about code you can hold in context at once, and your edits are

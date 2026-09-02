@@ -436,6 +436,7 @@ Keep the task loop here.
 | "I'll fix it myself, dispatching is overhead" | Controller fixes pollute your context and skip review. Resume the implementer. |
 | "One more round will converge" | Past the cap, rounds don't converge — the failure is structural. Adjudicate and route. |
 | "This finding is obviously wrong, I'll drop it" | You adjudicate only at the cap, and every ruling is a ledger entry. Silent discards are forbidden. |
+| "The implementer dispatched its own reviewer — free extra assurance" | It is a duplicate seat on the same diff. The task review is the gate; a worker-spawned review is a defect to flag. |
 | "The fix was small, skip the re-review" | Unreviewed fixes are how regressions land. Every round ends with a scoped re-review. |
 | "Ledger bookkeeping is overhead" | The ledger is what survives summarization. Controllers without one have re-dispatched entire completed task sequences. |
 | "The ledger should capture my reasoning" | It's a recovery map. State goes in one-liners; reasoning is a diary that costs context on every later turn. |
