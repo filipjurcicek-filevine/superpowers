@@ -1,5 +1,36 @@
 # Superpowers Release Notes
 
+## v6.2.1-cc.7 (2026-09-02)
+
+Cursor on the latest Grok model is now the default cross-reviewer.
+
+### `cross-reviewing-with-codex` becomes `cross-reviewing-with-cursor`
+
+The skill drove the Codex CLI. It now drives the Cursor Agent CLI, on the newest
+`cursor-grok-*-high` model that `cursor-agent models` reports. The skill resolves
+that id at run time and never hardcodes a version, because model names change
+faster than the skill. Codex stays as the fallback when `cursor-agent` is absent.
+
+The three call sites are unchanged in shape: the spec review in brainstorming,
+the plan review in writing-plans, and the branch review in
+subagent-driven-development. The verification gate is unchanged — every finding
+is confirmed, refuted, or ruled out of scope against the artifact before anything
+changes.
+
+Three mechanics differ from the Codex path, and the skill states each one:
+
+- `cursor-agent` has no `review` subcommand and no scope flags. The branch review
+  builds `git diff <merge-base>...HEAD` to a file and gives Cursor the path.
+- The answer comes back as one JSON object on stdout. Read `.result` with `jq`,
+  and gate on `.is_error`. Keep stderr in a separate file, because one warning
+  makes the log invalid JSON.
+- Read-only needs four guards, not one: `--mode ask`, `--sandbox enabled`,
+  `--trust`, no `--force`, plus an explicit no-edit line in the prompt and a
+  working-tree fingerprint check after the run. `--sandbox enabled` alone blocks
+  the edit tools, and the agent can still write through the shell.
+
+Skill count is unchanged at 16.
+
 ## v6.2.1-cc.6 (2026-07-31)
 
 New effort tiers for the subagent roles, and the eval harness moves out of the

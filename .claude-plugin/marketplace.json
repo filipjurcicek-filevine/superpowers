@@ -9,7 +9,7 @@
     {
       "name": "superpowers",
       "description": "Superpowers skills for Claude Code, tuned for Opus 5",
-      "version": "6.2.1-cc.6",
+      "version": "6.2.1-cc.7",
       "source": "./",
       "author": {
         "name": "Filip Jurcicek",

@@ -150,7 +150,7 @@ If you find issues, fix them inline. No need to re-review — just fix and move 
 
 ## Cross-Review
 
-After the self-review, use superpowers:cross-reviewing-with-codex, site 2: a
+After the self-review, use superpowers:cross-reviewing-with-cursor, site 2: a
 second model checks the plan against the spec. Its highest-value output is a spec
 requirement that no task implements — the defect class that otherwise surfaces
 halfway through execution, when the plan is already being followed.
@@ -158,7 +158,7 @@ halfway through execution, when the plan is already being followed.
 Confirmed findings get fixed in the plan before the execution handoff. The skill's
 verification gate rules on each one; a finding that objects to something the spec
 deliberately decided goes to the user, not into the plan. Skip silently — one line
-— when codex isn't installed.
+— when no cross-review CLI is installed.
 
 ## Execution Handoff
 

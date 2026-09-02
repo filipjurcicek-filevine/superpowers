@@ -1,6 +1,6 @@
 {
   "name": "superpowers",
-  "version": "6.2.1-cc.6",
+  "version": "6.2.1-cc.7",
   "description": "Superpowers skills for Claude Code, tuned for Opus 5",
   "type": "module",
   "keywords": [

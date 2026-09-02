@@ -136,7 +136,7 @@ baseline before you trust it under pressure.
   - The skill skips the step in one line when the tool is absent.
   - The skill never asks the user to install the tool.
 
-  `cross-reviewing-with-codex` is the one skill that uses an optional tool. Its
+  `cross-reviewing-with-cursor` is the one skill that uses an optional tool. Its
   pattern is the standard for every other skill.
 - **Findings from an outside model are claims.** A skill can bring in a review
   from another model. The skill must check each finding against the artifact or

@@ -343,15 +343,16 @@ of re-deriving the branch diff. Point it at the ledger's deferred-minor and
 parked lines so it can triage which must be fixed before merge.
 
 **Then cross-review the branch while that reviewer works.** Use
-superpowers:cross-reviewing-with-codex, site 3 — `codex review --base <merge-base>`.
+superpowers:cross-reviewing-with-cursor, site 3 — the branch review over
+`git diff <merge-base>...HEAD`.
 The two reviews are independent, so running them concurrently costs little
 wall-clock. Merge the finding sets afterward: agreement is evidence but not proof
-(two models share assumptions), Codex-only findings go through the verification
+(two models share assumptions), outside-only findings go through the verification
 gate, and our reviewer's findings stand on their own. Deduplicate by file and line.
 
 If the final review returns findings — from either reviewer — dispatch ONE
 `superpowers:sdd-implementer` with the complete merged list, not one fixer per
-finding and not a second wave for the Codex set. Per-finding fixers each rebuild
+finding and not a second wave for the outside set. Per-finding fixers each rebuild
 context and re-run suites; a real session's final-review fix wave cost more than
 all its tasks combined. Then run exactly one scoped re-review of the fix wave
 (`scripts/review-package PLAN_FILE FIX_BASE HEAD`, `superpowers:sdd-re-reviewer`).

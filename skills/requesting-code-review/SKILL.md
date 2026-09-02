@@ -30,7 +30,7 @@ one-line diff.
 have stopped being able to see.
 
 **For a second opinion from a different model**, add
-superpowers:cross-reviewing-with-codex. Worth the extra minutes before a merge or
+superpowers:cross-reviewing-with-cursor. Worth the extra minutes before a merge or
 on a change you are uneasy about; not worth it for a routine task gate. Its
 findings go through that skill's verification gate before anything is fixed.
 

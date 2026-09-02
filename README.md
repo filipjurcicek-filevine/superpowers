@@ -47,13 +47,13 @@ stops for you rather than guessing.
 **Brainstorm → spec.** Instead of jumping to code, the agent asks what you are
 actually building, proposes two or three approaches with real trade-offs, and
 presents the design in sections short enough to read. The spec is written to
-`docs/superpowers/specs/`, self-reviewed, and — if the Codex CLI is on PATH —
+`docs/superpowers/specs/`, self-reviewed, and — if a cross-review CLI is on PATH —
 cross-reviewed by a second model before you see it. *Gate 1: you approve the
 spec.*
 
 **Spec → plan.** The plan is written for an engineer with no project context and
 an aversion to testing: exact file paths, real code in every step, red/green TDD,
-YAGNI, DRY. Codex then checks the plan against the spec, whose highest-value
+YAGNI, DRY. A second model then checks the plan against the spec, whose highest-value
 finding is a requirement no task implements. *Gate 2: you approve the plan and
 pick how to execute it.*
 
@@ -66,7 +66,7 @@ the loop stops for you on a plan contradiction or a load-bearing finding it
 cannot resolve.*
 
 **Implementation → integration.** A whole-branch review at `medium` effort, plus a
-Codex branch review, then one fix wave. *Gate 4: you choose merge, PR, or keep.*
+second-model branch review, then one fix wave. *Gate 4: you choose merge, PR, or keep.*
 
 Every finding from an outside model is a claim until it is checked against the
 artifact, and every ruling gets recorded — confirmed, refuted, or out of scope.
@@ -175,7 +175,7 @@ edits were absent from `~/.claude/plugins/cache/superpowers-cc/`. Trust `list`.
 from the manifest and the tree. This fork should show **16 skills**, **4 agents**
 (`code-reviewer`, `sdd-implementer`, `sdd-task-reviewer`, `sdd-re-reviewer`), and
 **2 hooks** (SessionStart, PreToolUse — two events, three scripts). If `agents` is
-0 or `cross-reviewing-with-codex` is missing, the manifests are wrong, not the
+0 or `cross-reviewing-with-cursor` is missing, the manifests are wrong, not the
 cache.
 
 To confirm an edit reached what runs, grep the cache for it:
@@ -205,7 +205,7 @@ call. The progress ledger is the resume mechanism either way.
 | Feature | Enable | Effect |
 |---|---|---|
 | Writing style pointer | `SUPERPOWERS_WRITING_STYLE=1` | Adds a ~30-word pointer to `writing-clearly-and-concisely` to every session's context. Also accepts `true`, `yes`, and `on`, in any case. The skill's rules are not injected — the pointer routes to them |
-| Codex cross-review | [Codex CLI](https://github.com/openai/codex) on PATH | Spec, plan, and branch cross-review. Confirm it runs: `codex exec -s read-only -o /tmp/m "Reply OK" </dev/null` — a 400 about the model means the configured default is unusable, so pin one with `-c model=<name>` |
+| Cross-review | [Cursor Agent CLI](https://docs.cursor.com/en/cli/overview) on PATH (or the [Codex CLI](https://github.com/openai/codex) as fallback) | Spec, plan, and branch cross-review on the latest Grok model at high effort. Confirm it runs: `cursor-agent -p --output-format json --mode ask --sandbox enabled --trust "Reply OK" </dev/null` — plain text instead of JSON means bad auth or a bad model id |
 
 ### Other harnesses
 
@@ -254,7 +254,7 @@ Both match narrowly, fail open, and carry a kill switch.
 | [`pre-agent-effort-pin`](hooks/pre-agent-effort-pin) | `Agent` | A subagent-driven-development dispatch (its prompt carries a `.superpowers/sdd/` artifact path) that names no effort-pinned agent type — it would run at session effort, with no role contract and full write tools, so a reviewer could edit the code under review. | `SUPERPOWERS_EFFORT_GUARD=0` |
 | [`pre-taskupdate-user-gate`](hooks/pre-taskupdate-user-gate) | `TaskUpdate` | Closing a task marked `"userGate": true` whose `verifyCommand` never ran in the session. Catches gates closed by declaring them verified inline. **Dormant** unless native tasks are enabled. | `SUPERPOWERS_USERGATE_GUARD=0` |
 
-## Codex cross-review (optional)
+## Cross-review (optional)
 
 At three points — the spec, the plan, and the finished branch — a second model
 reads the artifact and reports what it thinks is wrong. Every finding is then
@@ -263,9 +263,12 @@ refuted and out-of-scope findings get a recorded ruling rather than silent
 deletion. A finding that objects to something the spec deliberately decided goes to
 you, not into the spec.
 
-Requires the [Codex CLI](https://github.com/openai/codex) on PATH. Without it, each
-call site says so in one line and continues — it is an enhancement, never a gate.
-See [cross-reviewing-with-codex](skills/cross-reviewing-with-codex/SKILL.md).
+The reviewer is the [Cursor Agent CLI](https://docs.cursor.com/en/cli/overview) on
+the latest Grok model at high effort, with the
+[Codex CLI](https://github.com/openai/codex) as fallback. With neither on PATH,
+each call site says so in one line and continues — it is an enhancement, never a
+gate. See
+[cross-reviewing-with-cursor](skills/cross-reviewing-with-cursor/SKILL.md).
 
 ## Native task management
 
@@ -299,7 +302,7 @@ notice. One file under a different license does not relicense this package.
 
 ## The Basic Workflow
 
-1. **brainstorming** - Activates before writing code. Refines rough ideas through questions, explores alternatives, presents design in sections for validation. Saves a design document, cross-reviewed by Codex before you read it.
+1. **brainstorming** - Activates before writing code. Refines rough ideas through questions, explores alternatives, presents design in sections for validation. Saves a design document, cross-reviewed by a second model before you read it.
 
 2. **using-git-worktrees** - Activates after design approval. Creates isolated workspace on new branch, runs project setup, verifies clean test baseline.
 
@@ -332,7 +335,7 @@ notice. One file under a different license does not relicense this package.
 - **executing-plans** - Inline execution for tightly coupled tasks
 - **dispatching-parallel-agents** - Concurrent subagent workflows
 - **requesting-code-review** - Dispatching an independent reviewer
-- **cross-reviewing-with-codex** - Second-model review of a spec, plan, or branch, with every finding verified before it is applied
+- **cross-reviewing-with-cursor** - Second-model review of a spec, plan, or branch, with every finding verified before it is applied
 - **receiving-code-review** - Responding to feedback
 - **using-git-worktrees** - Parallel development branches
 - **finishing-a-development-branch** - Merge/PR decision workflow

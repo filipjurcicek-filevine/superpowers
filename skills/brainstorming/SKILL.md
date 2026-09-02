@@ -28,7 +28,7 @@ design can be three sentences; it still gets presented and approved.
 4. **Present the design** — in sections scaled to their complexity, approved section by section
 5. **Write the design doc** — `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`, committed
 6. **Self-review the spec** — placeholders, contradictions, ambiguity, scope
-7. **Cross-review the spec** — superpowers:cross-reviewing-with-codex, if codex is installed
+7. **Cross-review the spec** — superpowers:cross-reviewing-with-cursor, if a cross-review CLI is installed
 8. **User reviews the written spec**
 9. **Hand off** — invoke superpowers:writing-plans
 
@@ -128,11 +128,11 @@ superpowers:writing-clearly-and-concisely. Commit the spec.
 
 Fix inline and move on — no second review pass.
 
-**Then cross-review it.** Use superpowers:cross-reviewing-with-codex, site 1. A
+**Then cross-review it.** Use superpowers:cross-reviewing-with-cursor, site 1. A
 second model reading the spec cold finds the ambiguities you can't see, because you
 wrote them. Confirmed findings get fixed in the spec now; the skill's verification
 gate decides which findings are real, and no unverified suggestion touches the
-spec. If codex isn't installed, say so in one line and carry on.
+spec. If no cross-review CLI is installed, say so in one line and carry on.
 
 **Then the user's review gate:**
 
