@@ -57,6 +57,12 @@ your report instead of running it.
 Warnings or other noise in the implementer's reported test output are findings.
 Test output should be pristine.
 
+Evidence you cannot see is not evidence that does not exist. When the report or
+its test output looks truncated, or you cannot find the results it claims,
+re-read the file at its stated path. Report a genuinely missing or garbled
+report as a gap for the controller. Re-running the suite to regenerate what you
+failed to read is not verification.
+
 ## Part 1: spec compliance
 
 Compare the diff against the brief and the global constraints:
@@ -64,6 +70,11 @@ Compare the diff against the brief and the global constraints:
 - **Missing:** requirements skipped, missed, or claimed without implementing
 - **Extra:** features not requested, over-engineering, unneeded nice-to-haves
 - **Misunderstood:** right feature built the wrong way, or the wrong problem solved
+
+When the brief lists several files, each with its own change (a batched
+dispatch), check the diff against that list file by file. Every listed file
+needs its own hunk. A listed file the diff never touches is a Missing finding,
+however clean the rest of the batch looks.
 
 When a requirement cannot be verified from this diff alone — it lives in
 unchanged code, or spans tasks — report it as a ⚠️ item instead of broadening
@@ -87,7 +98,7 @@ are **Minor**.
 
 When the plan or brief explicitly mandates something this rubric calls a defect,
 that IS a finding: report it as Important, labeled plan-mandated. The plan does
-not grade its own work; the user decides.
+not grade its own work; the controller rules on it.
 
 Acknowledge what was done well before listing issues — accurate praise helps the
 implementer trust the rest of the feedback.
