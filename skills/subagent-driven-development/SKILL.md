@@ -177,6 +177,14 @@ Workflow tool, where effort is a per-call option.
 
 ## The Task Loop
 
+**Batch small same-shape work.** When the plan lists several tasks that are each
+a small, independent edit of the same kind — the same one-line fix, constant
+change, or field addition repeated across files — do not dispatch one implementer
+per task. Compose ONE dispatch listing every file and its change, send the whole
+batch to a single implementer, and review its diff as one unit. Keep
+one-dispatch-per-task for work that needs its own judgment, its own tests, or its
+own review surface.
+
 Everything you paste into a dispatch prompt — and everything a subagent prints
 back — stays resident in your context for the rest of the session and is re-read
 on every later turn. Hand artifacts over as files.
