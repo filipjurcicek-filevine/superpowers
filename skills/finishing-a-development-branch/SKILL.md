@@ -191,6 +191,28 @@ Options 2 and 3 always preserve the workspace.
 Never remove a worktree you did not create. Sibling worktrees belong to other
 sessions or to the user.
 
+**If removal is refused** (`contains modified or untracked files`), the worktree
+holds files that exist nowhere else — uncommitted plans, notes, or scratch work.
+Never `--force` on your own initiative. List what is at stake and ask:
+
+```bash
+git -C "$WORKTREE_PATH" status --porcelain -uall
+```
+
+```
+Worktree removal refused — these files were never committed:
+
+<file list>
+
+1. Commit them to <branch> before cleanup
+2. Move them into <main checkout path>
+3. Delete them (unrecoverable)
+
+Which?
+```
+
+Carry out the answer, then remove the worktree.
+
 ## Quick Reference
 
 | Option | Merge | Push | Keep Workspace | Cleanup Branch |
@@ -210,6 +232,7 @@ sessions or to the user.
 | "'Yeah, get rid of it' counts as confirmation" | Only the typed word `discard` authorizes deletion. |
 | "The PR is up, so the worktree is clutter now" | PR feedback gets fixed in that worktree. It stays until the work lands. |
 | "I'll remove the worktree before merging, to save a step" | Removing first destroys the commits you were about to merge. Merge, verify green, then clean up. |
+| "Removal refused — `--force` just finishes the cleanup" | The refusal means those files exist only in that worktree. `--force` destroys them for good. List them and ask. |
 | "This other worktree looks stale — I'll clean it too" | Clean up only the worktree this session created. Everything else belongs to the host or the user. |
 | "The merged-result failure is probably flaky" | A failing merged result stops everything. Branch and worktree stay put while you investigate. |
 | "The base branch is obviously main" | Confirm the fork point or ask. Merging into the wrong base is expensive to undo. |
