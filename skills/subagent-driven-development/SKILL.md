@@ -78,7 +78,10 @@ not instead of it.
   permission prompt for every entry.
 
 Read the plan once, note its context and Global Constraints, and mirror it into
-native tasks with `TaskCreate`. The task panel is what the user watches to see
+native tasks with `TaskCreate`. When the plan names a **Spec:**, read that too —
+the spec is the authority the plan argues from, and a conflict inside the plan
+resolves against it. When no spec is reachable, say so in the ledger: rulings
+made without one are provisional. The task panel is what the user watches to see
 what is done, blocked, and next without reading your output; the ledger is what
 you resume from.
 
