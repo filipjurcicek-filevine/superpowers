@@ -21,10 +21,25 @@ broad final review = high quality, fast iteration
 and the tool results carry the record.
 
 **Continuous execution:** do not pause to check in between tasks. Execute every
-task in the plan. The only reasons to stop are a BLOCKED status you cannot
-resolve, ambiguity that genuinely prevents progress, or all tasks complete.
-"Should I continue?" prompts and progress summaries waste the user's time — they
-asked you to execute the plan, so execute it.
+task in the plan. The only reasons to stop are the four below, or all tasks
+complete. "Should I continue?" prompts and progress summaries waste the user's
+time — they asked you to execute the plan, so execute it.
+
+**Rulings, not stalls.** A running plan does not wait on the user. Decide the
+conflicts, the ambiguities, the plan defects, and the caps you would otherwise
+have asked to exceed. The spec is the binding authority, the plan is its
+argument, and your judgment settles what neither answers. Record every decision
+in the ledger as `Ruling: <what you decided> — <why> — <cost if wrong>`, then
+carry on. A wrong ruling costs rework the user can see and undo; a session
+parked on a question costs the user a day and buys nothing.
+
+Four things stop you, and only these:
+
+- an irreversible or destructive operation
+- a security-sensitive action
+- a side effect outside this worktree that norms say you ask about first — a
+  merge, a push to a shared branch, a publish
+- a plan so broken that every path forward is a guess
 
 ## When to Use
 
@@ -67,10 +82,11 @@ not instead of it.
 - `git clean -fdx` will destroy the workspace (it's git-ignored scratch); if that
   happens, recover from `git log`.
 - **The ledger records state, not reasoning.** Entries are the one-line forms in
-  this skill — dispatch, fix round, complete, minor, parked, BLOCKED. One event,
-  one line; only a parked ruling may run to three. No methodology narration, no
-  reviewer praise, no self-correction essays, no restating facts an earlier entry
-  already holds. Every extra line is re-read on every later turn. A lesson about
+  this skill — dispatch, fix round, complete, minor, parked, `Ruling:`, BLOCKED.
+  One event, one line; only a ruling may run to three. The preflight conflict
+  table below is the one multi-line block the ledger holds. No methodology
+  narration, no reviewer praise, no self-correction essays, no restating facts
+  an earlier entry already holds. Every extra line is re-read on every later turn. A lesson about
   your own process is not state: it goes in your final report to the user,
   because the workspace — this file included — is deleted at Finish.
 - **Append with a shell append**, `cat >> progress.md <<'EOF'`, not the Edit
@@ -103,17 +119,24 @@ you resume from.
   capturing the output. Declaring it verified inline, or substituting a cheaper
   check, is the failure this exists to prevent.
 
-Before dispatching Task 1, scan the plan once for conflicts:
+Before dispatching Task 1, scan the plan once for conflicts, and write down what
+you checked as you check it:
 
 - tasks that contradict each other or the plan's Global Constraints
 - anything the plan explicitly mandates that the review rubric treats as a defect
   (a test that asserts nothing, verbatim duplication of a logic block)
 
-Present everything you find to the user as one batched question — each finding
-beside the plan text that mandates it, asking which governs — before execution
-begins, not one interrupt per discovery mid-plan. If the scan is clean, proceed
-without comment. The review loop remains the net for conflicts that only emerge
-from implementation.
+The scan's output is a table, not a verdict. One row for every pair of tasks that
+share a file or an interface: the two tasks, what one produces against what the
+other consumes, and what you found. One row for every task: whether its own text
+agrees with itself — the tests it specifies against the code it specifies, the
+files it creates against the files it later touches. "The scan is clean" without
+those rows is not a scan you ran.
+
+Write the table to the ledger. Rule on every conflict it surfaces before
+execution begins — the spec binds, the plan argues — record each ruling beside
+its row, and dispatch Task 1. If the scan is clean, proceed without comment. The
+review loop remains the net for conflicts that only emerge from implementation.
 
 ## Dispatch Roles
 
@@ -205,7 +228,8 @@ proceeds.
 
 **BLOCKED:** assess the blocker. A context problem gets more context and a
 re-dispatch. A reasoning problem gets a fresh implementer with the escalation
-framing. A too-large task gets split. A wrong plan goes to the user.
+framing. A too-large task gets split. A wrong plan gets a ruling on the correction, a
+ledger line, and a re-dispatch that carries the ruling.
 
 Never ignore an escalation, and never re-dispatch unchanged after one. If the
 implementer said it was stuck, something has to change.
@@ -264,10 +288,10 @@ Two routes leave it immediately:
   is pointed at that list so it can triage what must be fixed before merge. A
   roll-up nobody reads is a silent discard. Minors never enter the loop.
 - **Plan-mandated findings** — or any finding that conflicts with what the plan
-  requires — are the user's decision, like any plan contradiction: present the
-  finding and the plan text, ask which governs. Do not dismiss the finding
-  because the plan mandates it, and do not dispatch a fix that contradicts the
-  plan without asking.
+  requires — are yours to rule on: weigh the finding against the plan text,
+  decide with the spec as the binding authority, and ledger the ruling before you
+  act on it. Do not dismiss the finding because the plan mandates it, and do not
+  dispatch a fix that contradicts the plan without a recorded ruling.
 
 Everything else enters the loop. A round is one fix dispatch plus one scoped
 re-review. **Five rounds maximum per task.**
@@ -310,15 +334,16 @@ dispatching and adjudicate each open finding yourself — you hold the plan and
 cross-task context the reviewer lacks:
 
 - **Reviewer is wrong, or the point is contestable:** park it —
-  `Task <N>: parked — <finding> — ruling: <why the code stands>`. The final review
+  `Task <N>: parked — <finding> — Ruling: <why the code stands>`. The final review
   sees both sides.
 - **Real, but nothing downstream builds on it:** park it the same way, with a
   ruling that says it's real and deferred.
 - **Real and load-bearing** — a later task builds on it, or it reveals a plan
-  defect: STOP. Append `Task <N>: BLOCKED — <reason>` and report to the user with
-  the finding, the plan text it collides with, and the fix history. Parking a
-  structural failure lets every dependent task build on it and hands the final
-  review a problem it cannot fix either.
+  defect: rule on the smallest change that unblocks the dependent work, ledger it
+  as `Task <N>: Ruling: <finding> — <what you decided and why>`, and carry it into
+  the next task's dispatch. Parking a structural failure silently lets every
+  dependent task build on it. Stop only when the defect leaves every path forward
+  a guess.
 
 Adjudicate only at the cap. Adjudicating earlier to end a loop is pre-judging
 with a different name. Every adjudication is a ledger entry; a silent discard is
@@ -360,11 +385,20 @@ context and re-run suites; a real session's final-review fix wave cost more than
 all its tasks combined. Then run exactly one scoped re-review of the fix wave
 (`scripts/review-package PLAN_FILE FIX_BASE HEAD`, `superpowers:sdd-re-reviewer`).
 Adjudicate residual findings as in the task loop's breaker: park with rulings, or
-stop on load-bearing ones. There is no second fix wave — residual load-bearing
+rule on the load-bearing ones and ledger what you decided. Only the four stop
+classes stop you here. There is no second fix wave — residual load-bearing
 findings surface to the user when finishing-a-development-branch presents the
 options.
 
 ## Finish
+
+Before you delete anything, collect every ledger line that contains `Ruling:` —
+preflight rulings, parked findings, breaker adjudications, all of them — into
+your final message under "Rulings I made", in the order you made them, each with
+what it costs if wrong. The list is exhaustive: if the ledger holds a ruling, the
+list holds it. That list is the only place the decisions you took on the user's
+behalf reach them, and it is what they use to rework whatever you got wrong. A
+ruling that dies with the workspace was a decision made in secret.
 
 When the final review is clean and its fixes are merged, delete this plan's
 workspace (`rm -rf <workspace>`) — the git history is the record now. Sibling
@@ -375,10 +409,12 @@ Use superpowers:finishing-a-development-branch.
 ## Why This Loop Is Prose, Not a Workflow
 
 The Workflow tool would give this loop deterministic control flow and journaled
-resume for free. It is deliberately not used here: this loop stops for the user
-at several branches — plan conflicts, plan-mandated findings, load-bearing
-findings at the cap — and those gates are where the loop earns its quality. A
-script that has to run to completion turns each of them into a guess.
+resume for free. It is deliberately not used here: the loop's quality comes from
+judgment at its branches — the preflight conflicts, the plan-mandated findings,
+the load-bearing findings at the cap. Each one gets a ruling that reads the spec,
+the plan, and the code together, and the four stop classes still take the user's
+answer. A script that has to run to completion turns every one of them into a
+guess.
 
 Use Workflow for the fan-out shapes inside a task (parallel investigation,
 per-item pipelines) and for a single round that needs a different effort tier.
