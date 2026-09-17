@@ -9,9 +9,12 @@ description: Use when implementation is complete, all tests pass, and you need t
 
 ## Step 1: Verify Tests
 
-Run the project's full test suite (`npm test` / `cargo test` / `pytest` / `go test ./...`).
+Use `superpowers:verification-before-completion`: verify affected behavior and
+required project checks, reusing valid results for unchanged inputs. Run the full
+suite when project policy or integration risk requires it.
 
-**If tests fail**, report the failures and stop — the menu comes after a green suite:
+**If required checks fail or confirmed blocking findings remain**, report them
+and stop integration. Keeping the workspace for investigation remains available:
 
 ```
 Tests failing (<N> failures). Must fix before completing:
@@ -19,7 +22,7 @@ Tests failing (<N> failures). Must fix before completing:
 [Show failures]
 ```
 
-**If tests pass:** continue to Step 2.
+**If required checks pass and blocking findings are resolved:** continue to Step 2.
 
 ## Step 2: Detect Environment
 
@@ -58,7 +61,8 @@ the local HEAD you were on when you started.
 
 ## Step 4: Present Options
 
-Ask with `AskUserQuestion` — one question, `header: "Integration"`. The tool
+Honor an integration action already authorized for this work. If none was chosen,
+ask with `AskUserQuestion` — one question, `header: "Integration"`. The tool
 renders the options as choices and records which one was picked. A hand-typed
 numbered menu invites a prose reply you then have to interpret, and invites you to
 improvise a different option set.
@@ -84,7 +88,7 @@ option is explained rather than merely absent.
 
 Take every option from the table above and add none of your own. **Discarding is
 not an option in this menu** — it happens only when the user asks for it in so
-many words (see below). Their answer is the decision; wait for it.
+many words (see below). When asking for a new decision, wait for their answer.
 
 ## Step 5: Execute Choice
 
@@ -214,33 +218,10 @@ Which?
 
 Then act on the answer and remove the worktree:
 
-- Option 1: commit, then `git worktree remove`.
+- Option 1: commit the retained work, merge that additional commit into the base,
+  and verify the affected behavior before removal. If it should remain separate,
+  keep the branch and workspace; do not remove the only reachable copy.
 - Option 2: `mv` the untracked files out, `git -C "$WORKTREE_PATH" reset --hard`,
   then `git worktree remove`.
 - Option 3: this is a deletion, so it needs the typed word `discard` from Step 5
   first. Then `git worktree remove --force` is the right command.
-
-## Quick Reference
-
-| Option | Merge | Push | Keep Workspace | Cleanup Branch |
-|--------|-------|------|----------------|----------------|
-| 1. Merge locally | yes | - | - | yes |
-| 2. Create PR | - | yes | yes | - |
-| 3. Keep as-is | - | - | yes | - |
-| Discard (explicit request only) | - | - | - | yes (force) |
-
-## Common Rationalizations
-
-| Excuse | Reality |
-|--------|---------|
-| "Tests passed earlier this session" | Run the suite on the tree you are about to integrate. A green run only proves the tree it ran on. |
-| "They obviously want it merged" | Integration is the user's decision. Present the menu and wait. |
-| "They seem done with this feature — I'll offer to discard it" | The menu is complete as written. Discard happens only when the user asks for it in so many words. |
-| "'Yeah, get rid of it' counts as confirmation" | Only the typed word `discard` authorizes deletion. |
-| "The PR is up, so the worktree is clutter now" | PR feedback gets fixed in that worktree. It stays until the work lands. |
-| "I'll remove the worktree before merging, to save a step" | Removing first destroys the commits you were about to merge. Merge, verify green, then clean up. |
-| "Removal refused — `--force` just finishes the cleanup" | The refusal means those files exist only in that worktree. `--force` destroys them for good. List them and ask. |
-| "This other worktree looks stale — I'll clean it too" | Clean up only the worktree this session created. Everything else belongs to the host or the user. |
-| "The merged-result failure is probably flaky" | A failing merged result stops everything. Branch and worktree stay put while you investigate. |
-| "The base branch is obviously main" | Confirm the fork point or ask. Merging into the wrong base is expensive to undo. |
-| "The push was rejected — force-push will fix it" | A rejected push means the remote moved. Investigate; force-push only on the user's explicit request. |

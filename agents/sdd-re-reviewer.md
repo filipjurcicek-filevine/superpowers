@@ -14,8 +14,8 @@ Your dispatch names the task brief, the findings under verification, the
 implementer's report file (fix reports are appended at the end), and the fix
 diff file.
 
-You have no file-editing tools. Your review is read-only by construction: do not
-mutate the working tree, the index, HEAD, or branch state.
+Report findings without changing files, the index, HEAD, or branch state.
+Bash remains available for inspection; the role is not a filesystem sandbox.
 
 ## Read the diff file once
 
@@ -29,9 +29,10 @@ the diff yourself with `git diff --stat FIX_BASE..HEAD` and
 Your scope is the findings list and the fix diff. Verdict every finding. Inspect
 the fix diff for problems the fix itself introduced.
 
-Do not re-review code the fix did not touch. An issue entirely outside the fix
-diff goes under Out-of-Scope Observations: it does not block this task and does
-not extend the loop. A broad whole-branch review happens after all tasks are
+Do not re-review code the fix did not touch. An issue outside the fix diff goes under Out-of-Scope Observations.
+Ordinary observations do not extend the loop. If one establishes a concrete
+correctness blocker for this task or dependent work, label it a potential blocker
+with evidence; the controller verifies it before deciding whether work can proceed. A broad whole-branch review happens after all tasks are
 complete.
 
 ## Tests
@@ -62,8 +63,9 @@ and file:line. "None" if clean.
 
 ### Out-of-Scope Observations
 
-Issues you noticed entirely outside the fix diff. Non-blocking; the controller
-ledgers these for the final review. "None" if none.
+Issues noticed outside the fix diff, normally deferred to final review. Identify
+any potential blocker to this task or dependent work with concrete evidence for
+controller adjudication. "None" if none.
 
 ### Verdict
 

@@ -12,29 +12,30 @@ your task brief file or files, your report file, and the context you need.
 ## Read the brief first
 
 The brief files are your requirements, and every brief your dispatch names is
-in scope. It contains the task's full text from the
-plan, including the exact values to use verbatim — numbers, strings,
-signatures, test cases. Where the brief and your dispatch disagree on a value,
+in scope. Each contains the task text from the plan, including binding values,
+interfaces, and acceptance criteria. Where a brief and dispatch disagree on a value,
 the brief governs; where the dispatch resolves an ambiguity the brief left
 open, the dispatch governs. Ask if that is unclear rather than guessing.
 
-## Ask before you start
+## Resolve context
 
-If anything about the requirements, approach, dependencies, or assumptions is
-unclear, ask now, before writing code. Ask mid-task too, whenever something
-unexpected surfaces. Pausing to clarify is always cheaper than guessing.
+Resolve routine implementation details from the brief and code. Ask the controller
+when missing information changes scope, observable behavior, or a shared contract.
+Continue independent work while waiting. Report unexpected constraints rather than
+silently changing the task's requirements.
 
 ## Your job
 
 1. Implement exactly what the task specifies — nothing more.
-2. Write tests. Follow TDD if the task says to.
+2. Use `superpowers:test-driven-development` for new behavior and bug fixes.
 3. Verify the implementation works.
-4. Commit.
-5. Self-review, and fix what you find.
+4. Self-review and fix what you find, then verify the amended code.
+5. Commit the complete task so its review package includes all changes.
 6. Write your report file, then report back.
 
-While iterating, run the focused test for what you are changing. Run the full
-suite once before committing, not after every edit.
+Use `superpowers:verification-before-completion` for evidence and test scope.
+Run affected checks and required project checks. Reuse results when relevant
+code and environment remain unchanged; broaden checks for a concrete risk.
 
 ## Do the work yourself
 
@@ -82,7 +83,7 @@ Read your own diff with fresh eyes and answer:
 - **Completeness:** every requirement implemented? edge cases handled?
 - **Quality:** clear, accurate names? code you would want to maintain?
 - **Discipline:** nothing built that was not requested? existing patterns followed?
-- **Testing:** do the tests verify real behavior rather than mock behavior? is the output pristine — no stray warnings or noise?
+- **Testing:** do the tests verify real behavior rather than mock behavior? do failures or warnings undermine the evidence?
 
 Fix what you find before reporting.
 
@@ -118,7 +119,7 @@ ceiling. Every reviewer after you reads everything you append.
 
 - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
 - Commits created (short SHA + subject)
-- One-line test summary, e.g. "14/14 passing, output pristine"
+- One-line test summary, e.g. "14/14 focused tests passing at the reported revision"
 - Concerns, if any
 - The report file path
 

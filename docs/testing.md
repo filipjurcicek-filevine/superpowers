@@ -187,11 +187,11 @@ python3 scripts/analyze-prompt-cost.py ~/Projects/superpowers-evals/results --gl
 
 Read it with two facts in mind, both of which produced a wrong answer first time:
 
-- **Cost is context size multiplied by turn count.** A `description` character is
-  in context from turn 1 of every session; a SKILL.md body character only after
-  invocation. On a ~25-turn run that makes description text worth roughly 25x body
-  text, which is why compressing bodies for cost is a waste (see
-  `skills/writing-skills/SKILL.md`, Progressive Disclosure).
+- **Measure actual context lifetime and cache use.** Descriptions enter early;
+  skill bodies enter when invoked. Their relative cost depends on invocation
+  frequency, turn count, caching, and the harness. The earlier ~25x rule was a
+  workload-specific heuristic, not a universal ratio. Evaluate workflow changes
+  and output tokens alongside prompt length.
 - **`prompt_tokens` reads as ~2** in these transcripts because nearly everything
   is cached. Context size lives in `cache_read_input_tokens +
   cache_creation_input_tokens`. Optimising off `prompt_tokens` concludes the

@@ -1,65 +1,30 @@
 ---
 name: executing-plans
-description: Use when executing an implementation plan inline in this session, rather than dispatching a subagent per task
+description: Use when executing a plan inline because tasks are coupled or inline work was requested
 ---
 
 # Executing Plans Inline
 
-Execute a plan yourself, task by task, in this session.
+Read the plan and its source requirements. Check dependencies, interfaces, and
+acceptance criteria. Resolve routine gaps from the code; ask about consequential
+ambiguity or scope changes before dependent work. Continue independent tasks.
 
-## When This Is the Right Route
+Use `superpowers:using-git-worktrees` to check isolation and follow the user's
+workspace preference. Never implement on main/master without explicit consent.
+Track one native task per deliverable, with dependencies where needed.
 
-Inline execution is the deliberate choice when:
+For each task:
 
-- **The tasks are tightly coupled** — each one depends on the shape of the last,
-  so a fresh subagent per task would spend its context rediscovering what you
-  already know.
-- **The user wants to watch and steer** — they asked to see each step, or the work
-  is exploratory enough that direction may change mid-plan.
+1. Mark it in progress and implement its agreed outcome.
+2. Use `superpowers:test-driven-development` for new behavior and bug fixes.
+3. Run the task's checks at the point they provide useful evidence.
+4. Inspect the diff and mark complete only when its acceptance criteria hold.
 
-Otherwise use superpowers:subagent-driven-development: a fresh implementer per
-task, a task review after each, and a broad review at the end catch more than
-inline execution does, because the reviewer has no stake in the code.
+Follow meaningful constraints, not stale implementation details contradicted by
+new evidence. Record material deviations and their reasons. Stop dependent work
+when requirements cannot be resolved within scope or a verification failure leaves
+correctness unknown. Report the evidence and the missing decision.
 
-## The Process
-
-### Step 1: Load and Review the Plan
-
-1. Ensure an isolated workspace — superpowers:using-git-worktrees.
-2. Read the plan file.
-3. Review it critically: contradictions between tasks, requirements with no task,
-   types or signatures that don't match across tasks, anything the plan mandates
-   that you believe is wrong.
-4. Raise what you found with the user before starting.
-5. `TaskCreate` one task per plan task.
-
-### Step 2: Execute Tasks
-
-For each task: mark it in progress, follow its steps, run the verifications the
-plan specifies, mark it complete. Use superpowers:test-driven-development for the
-implementation steps.
-
-Do not batch verification to the end. A plan step that says to run the tests is
-the point at which you run them.
-
-### Step 3: Complete
-
-After all tasks pass their verifications:
-
-**REQUIRED SUB-SKILL:** superpowers:finishing-a-development-branch
-
-## When to Stop and Ask
-
-Stop when you hit a blocker (missing dependency, failing test you can't explain,
-an instruction you don't understand), when the plan has a gap that prevents
-starting, or when verification keeps failing. Ask rather than guessing.
-
-Return to Step 1 when the user updates the plan, or when the approach needs
-rethinking rather than the next step.
-
-## Remember
-
-- Review the plan critically before starting, not after it goes wrong
-- Follow the plan's steps; run its verifications where it says to
-- Invoke the skills the plan names
-- Never start implementation on main/master without the user's explicit consent
+After the tasks, use `superpowers:requesting-code-review` for a substantial change.
+Use `superpowers:verification-before-completion`, then
+`superpowers:finishing-a-development-branch`. Reuse valid verification evidence.

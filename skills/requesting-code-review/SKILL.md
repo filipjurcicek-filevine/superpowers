@@ -49,16 +49,13 @@ HEAD_SHA=$(git rev-parse HEAD)
   `scripts/review-package` writes it; the reviewer then reads one file instead of
   re-deriving the diff)
 
-The agent definition carries the review rubric, the severity calibration, and the
-output format, and it has no file-editing tools — the review is read-only by
-construction. Do not restate the rubric in your dispatch, and do not tell it what
+The agent definition carries the rubric, severity calibration, and output format.
+It prohibits mutation, but retains Bash; this is not enforced filesystem isolation. Do not restate the rubric in your dispatch, and do not tell it what
 not to flag.
 
-**3. Act on the findings:**
-- Critical: fix before anything else
-- Important: fix before proceeding
-- Minor: record them; triage before merge
-- Wrong: push back with technical reasoning — see superpowers:receiving-code-review
+**3. Verify findings before acting:** use superpowers:receiving-code-review.
+Confirmed Critical/Important defects block completion. Refute disproved claims
+with evidence at once. Record minors for triage before merge.
 
 **Surfacing findings to the user.** When the user asked for the review, relay the
 findings — the reviewer's report goes to you, not to them. If the host renders
@@ -75,12 +72,3 @@ Working in a worktree makes the workspace root and your working directory
 different: prefix the link with the worktree path
 (`[auth.ts:42](.claude/worktrees/retry-fix/src/auth.ts#L42)`), or the link opens
 the original file and the finding looks wrong.
-
-## Common Rationalizations
-
-| Excuse | Reality |
-|--------|---------|
-| "I'll review the diff myself — I have the context for it" | Having the context is the problem: you already concluded this code is correct. Dispatch a reader who hasn't. |
-| "The reviewer needs my session history to understand the change" | Hand it the requirements and the diff. Your thought process is what you want it not to inherit. |
-| "It's simple, skip the review" | Task gates, features, and pre-merge get a review regardless. Size decides the reviewer's scope, not whether one happens. |
-| "I'll tell the reviewer that finding would be a false positive" | That is pre-judging. Let it raise the finding and adjudicate afterward. |

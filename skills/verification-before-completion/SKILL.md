@@ -1,55 +1,47 @@
 ---
 name: verification-before-completion
-description: Use when about to claim work is complete, fixed, or passing — before committing, pushing, or creating a PR
+description: Use before claiming work is complete, fixed, or passing, or preparing integration
 ---
 
 # Verification Before Completion
 
-**Core principle:** evidence before claims, always. A claim you have not run the
-command for in this message is a guess wearing a result's clothing.
+Support each completion claim with evidence for the code and environment being
+reported. A report of success is a claim until its evidence is inspected.
 
-## The Gate
+## Evidence contract
 
-Before stating any status:
+Record the command or check, its scope, result, and code state. For committed
+work, name the revision. Include relevant uncommitted changes and environment
+changes when deciding whether evidence still applies.
 
-1. **Identify** the command that proves the claim.
-2. **Run** it fresh and complete — not a subset, not a previous run.
-3. **Read** the full output: exit code, failure count, warnings.
-4. **State** the claim with that evidence, or state the actual status with it.
+Reuse a recorded result when its inputs remain unchanged. A new message or a
+handoff does not invalidate it. Changes to relevant source, tests, dependencies,
+configuration, or runtime do. If validity is uncertain, run the affected check.
 
-## What Each Claim Requires
+Run checks that cover the changed behavior and all required project checks.
+A focused check proves only its scope; do not describe it as a full-suite pass.
+Broaden testing for integration risk, failures, or a specific unresolved concern.
+Once sufficient checks pass, continue toward completion.
 
-| Claim | Requires | Not sufficient |
-|-------|----------|----------------|
-| Tests pass | Test command output: 0 failures | A previous run, "should pass" |
-| Linter clean | Linter output: 0 errors | A partial check, extrapolation |
-| Build succeeds | Build command: exit 0 | Linter passing, logs looking fine |
-| Bug fixed | The original symptom retested: passes | Code changed, fix assumed |
-| Regression test works | Red-green verified by reverting the fix | The test passing once |
-| Subagent completed | The VCS diff shows the changes | The agent's success report |
-| Requirements met | Line-by-line checklist against the spec | Tests passing |
+An explicit user verification gate still requires its named command and captured
+output. Do not substitute another check or waive the gate silently.
 
-## Two Protocols Worth Spelling Out
+## Match the evidence to the claim
 
-**Regression tests.** A test that passes against fixed code has not been shown to
-catch anything:
+| Claim | Evidence |
+|---|---|
+| Tests pass | Named test command, passing result, and stated scope |
+| Lint or build passes | That check's successful output; one does not prove the other |
+| Bug fixed | Original reproduction now passes, with a regression check when feasible |
+| Regression test detects the defect | Failure on defective behavior and success on the fix |
+| Worker completed | Inspect its diff, requirements, and recorded checks |
+| Requirements met | Compare the delivered behavior with acceptance criteria |
 
-```
-Write test → run (passes) → revert the fix → run (MUST FAIL) → restore fix → run (passes)
-```
+For a regression test written after the fix, demonstrate failure against the
+pre-fix behavior in an isolated copy or with a reversible patch. Preserve user
+changes. Existing recorded red/green evidence already satisfies this check.
 
-Without the revert step, you have a test that agrees with the current code.
-
-**Subagent reports.** A subagent reporting success is a claim about the
-repository, not an observation of it. Check `git status` / `git diff` for the
-changes before you repeat the claim upward. Subagents report success for work
-they abandoned, work they only described, and work they wrote to the wrong path.
-
-## Common Rationalizations
-
-| Excuse | Reality |
-|--------|---------|
-| "Should work now" | Run the verification. |
-| "Linter passed" | The linter doesn't compile or run anything. |
-| "Partial check is enough" | A subset proves the subset. |
-| "The agent said it succeeded" | Check the diff. |
+Read failures and warnings. Fix regressions introduced by this work; distinguish
+pre-existing failures and relevant warnings from unrelated output noise.
+If a check cannot run, name the missing evidence and its effect on confidence.
+Never turn an unavailable check into a passing claim.

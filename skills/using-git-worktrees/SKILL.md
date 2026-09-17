@@ -112,11 +112,14 @@ whether the project expects a symlink or a shared store instead.
 
 ## Step 3: Verify Clean Baseline
 
-Run the project's tests so the workspace starts from a known state
-(`npm test` / `cargo test` / `pytest` / `go test ./...`).
+Establish a baseline for affected behavior and run any project-required baseline
+checks. Reuse recorded results only when the code and environment match. Use
+`superpowers:verification-before-completion` for evidence scope.
 
-**If tests fail:** report the failures and ask whether to proceed or
-investigate. Proceeding past a dirty baseline is the user's call.
+**If checks fail:** investigate whether the failure affects this work. Report
+pre-existing failures and preserve their evidence. Continue independent work when
+the baseline defect does not prevent validation. Ask when progress requires a
+scope change or a user decision; do not waive required checks.
 
 **If tests pass:** report ready.
 
@@ -126,30 +129,5 @@ Tests passing (<N> tests, 0 failures)
 Ready to implement <feature-name>
 ```
 
-## Quick Reference
-
-| Situation | Action |
-|-----------|--------|
-| Already in a linked worktree | Skip creation (Step 0) |
-| In a submodule | Treat as normal repo (Step 0 guard) |
-| Normal checkout, no declared preference | Ask for consent, then `EnterWorktree` |
-| Preference declared in CLAUDE.md / memory | `EnterWorktree` without asking |
-| Consent declined | Work in place |
-| Already in an `EnterWorktree` session | Use it; `path` to switch, never a second `name` |
-| Work depends on unpushed local commits | Confirm the base ref before implementing |
-| Baseline tests fail | Report failures + ask |
-| Setup undocumented, lockfile present | Use the lockfile's tool |
-| Manifest present, no lockfile, no docs | Ask which installer |
-
 Cleanup happens at finish time via `ExitWorktree` — see
 superpowers:finishing-a-development-branch.
-
-## Common Rationalizations
-
-| Excuse | Reality |
-|--------|---------|
-| "I'm obviously not in a worktree — no need to check" | Run Step 0. Harness-created isolation and submodules both fool eyeballing; the detection commands settle it. |
-| "`git worktree add` is quicker" | It creates state the harness cannot see, and it makes finish-time cleanup a silent no-op. `EnterWorktree` or work in place. |
-| "The user obviously wants isolation" | `EnterWorktree` needs an explicit request. Ask, or find the declared preference. |
-| "The base ref doesn't matter" | A fresh base drops unpushed local commits. Check it whenever the work builds on them. |
-| "The workspace is fresh — baseline tests can wait" | A dirty baseline makes every later failure ambiguous. Run them now. |

@@ -2,9 +2,9 @@
 
 Superpowers is a complete software development methodology for your coding agents, built on top of a set of composable skills and some initial instructions that make sure your agent uses them.
 
-> **This fork targets Claude Code on Opus 5 only** — the CLI and the VS Code
-> extension. Nothing here is written to degrade gracefully on another harness or
-> another model.
+> **Shared prompts for Opus/Fable, Sol, and Astra-class models.** Packaging still
+> targets Claude Code — the CLI and VS Code extension. This is a prompt-design
+> scope, not a claim of verified model parity or a cross-harness adapter.
 >
 > **Optimized for Claude Code.** Every skill names Claude Code's own tools rather
 > than describing them abstractly: `EnterWorktree` / `ExitWorktree` for isolation,
@@ -38,39 +38,33 @@ including how to pick up your own edits, under [Installation](#installation).
 
 ## How it works
 
-The SessionStart hook inlines the `using-superpowers` bootstrap into every
-session, so when a turn is about to write code the agent invokes a skill before
-acting instead of starting to type. From there the work runs through four
-approval gates, and the gates are the point — each one is a place the process
-stops for you rather than guessing.
+The SessionStart hook injects `using-superpowers`, which routes development work
+to the appropriate skill. Read-only questions need no process ceremony.
 
-**Brainstorm → spec.** Instead of jumping to code, the agent asks what you are
-actually building, proposes two or three approaches with real trade-offs, and
-presents the design in sections short enough to read. The spec is written to
-`docs/superpowers/specs/`, self-reviewed, and — if a cross-review CLI is on PATH —
-cross-reviewed by a second model before you see it. *Gate 1: you approve the
-spec.*
+**Design and plan.** Bounded, authorized changes proceed after relevant inspection.
+Architectural work records decisions and acceptance criteria in a spec and plan.
+Questions resolve consequential uncertainty; they do not repeat prior approval.
+Plans describe task contracts, shared interfaces, and verification, with code only
+where exact implementation detail is necessary.
 
-**Spec → plan.** The plan is written for an engineer with no project context and
-an aversion to testing: exact file paths, real code in every step, red/green TDD,
-YAGNI, DRY. A second model then checks the plan against the spec, whose highest-value
-finding is a requirement no task implements. *Gate 2: you approve the plan and
-pick how to execute it.*
+**Implement and review.** Substantial independent tasks use fresh implementers and
+independent reviewers. Coupled or small work can execute inline. Agent definitions
+retain fixed effort defaults and inherit the selected model. Reviewers prohibit
+mutation but retain Bash, so the role itself is not a filesystem sandbox.
 
-**Plan → implementation.** Subagent-driven development dispatches a fresh
-implementer per task and an independent reviewer after each one, on pinned
-effort tiers, with reviewers that have no file-editing tools. A five-round fix
-loop with a circuit breaker handles findings; a ledger on disk survives context
-summarization, so a long run resumes instead of re-doing finished work. *Gate 3:
-the loop stops for you on a plan contradiction or a load-bearing finding it
-cannot resolve.*
+**Resolve findings.** Controllers verify findings before fixing them and can reject
+a disproved claim immediately. Confirmed blockers stay open until resolved.
+Bounded fix loops stop repeated unsuccessful approaches. A ledger preserves task
+state and evidence across context summarization.
 
-**Implementation → integration.** A whole-branch review at `medium` effort, plus a
-second-model branch review, then one fix wave. *Gate 4: you choose merge, PR, or keep.*
+**Verify and integrate.** Checks cover affected behavior and project requirements.
+Valid evidence can be reused for unchanged inputs. Whole-branch review checks
+integration; outside-model review is conditional on risk or an explicit request.
+Integration follows the user's authorization, with ownership-aware cleanup.
 
-Every finding from an outside model is a claim until it is checked against the
-artifact, and every ruling gets recorded — confirmed, refuted, or out of scope.
-Nothing a second model says is applied unverified.
+See [the work plan](docs/plans/2026-09-17-streamline-capable-model-skills.md) for
+this revision's scope and [validation report](docs/skill-streamlining-validation.md)
+for measured results and remaining gaps.
 
 ## Installation
 
@@ -205,7 +199,7 @@ call. The progress ledger is the resume mechanism either way.
 | Feature | Enable | Effect |
 |---|---|---|
 | Writing style pointer | `SUPERPOWERS_WRITING_STYLE=1` | Adds a ~30-word pointer to `writing-clearly-and-concisely` to every session's context. Also accepts `true`, `yes`, and `on`, in any case. The skill's rules are not injected — the pointer routes to them |
-| Cross-review | [Cursor Agent CLI](https://docs.cursor.com/en/cli/overview) on PATH (or the [Codex CLI](https://github.com/openai/codex) as fallback) | Spec, plan, and branch cross-review on the latest Grok model at high effort. Confirm it runs: `cursor-agent -p --output-format json --mode ask --sandbox enabled --trust "Reply OK" </dev/null` — plain text instead of JSON means bad auth or a bad model id |
+| Cross-review | [Cursor Agent CLI](https://docs.cursor.com/en/cli/overview) on PATH | Spec, plan, and branch cross-review on the latest Grok model at high effort. Confirm it runs: `cursor-agent -p --output-format json --mode ask --sandbox enabled --trust "Reply OK" </dev/null` — plain text instead of JSON means bad auth or a bad model id |
 
 ### Other harnesses
 
@@ -264,9 +258,9 @@ deletion. A finding that objects to something the spec deliberately decided goes
 you, not into the spec.
 
 The reviewer is the [Cursor Agent CLI](https://docs.cursor.com/en/cli/overview) on
-the latest Grok model at high effort, with the
-[Codex CLI](https://github.com/openai/codex) as fallback. With neither on PATH,
-each call site says so in one line and continues — it is an enhancement, never a
+the latest Grok model at high effort. Review requires the CLI, active paid access,
+and remaining plan allowance. Missing access, a free plan, exhausted allowance,
+or unknown eligibility means skip. Each call site states the reason and continues — it is an enhancement, never a
 gate. See
 [cross-reviewing-with-cursor](skills/cross-reviewing-with-cursor/SKILL.md).
 
@@ -302,21 +296,23 @@ notice. One file under a different license does not relicense this package.
 
 ## The Basic Workflow
 
-1. **brainstorming** - Activates before writing code. Refines rough ideas through questions, explores alternatives, presents design in sections for validation. Saves a design document, cross-reviewed by a second model before you read it.
+1. **brainstorming** resolves consequential design choices. Bounded authorized
+   work proceeds directly; architectural work records a spec.
+2. **using-git-worktrees** detects existing isolation, honors workspace preferences,
+   checks the base, and establishes relevant baseline evidence.
+3. **writing-plans** defines independently testable task outcomes, shared interfaces,
+   constraints, and acceptance checks.
+4. **subagent-driven-development** coordinates substantial independent tasks and
+   their reviews. **executing-plans** handles coupled or small work inline.
+5. **test-driven-development** establishes red/green behavioral evidence. Existing
+   implementation is preserved and validated retrospectively when tests came later.
+6. **requesting-code-review** obtains an independent review for substantial changes.
+   Findings are checked before fixing; disproved claims can be rejected immediately.
+7. **finishing-a-development-branch** verifies readiness, honors an authorized
+   integration choice or asks for one, and preserves work during cleanup.
 
-2. **using-git-worktrees** - Activates after design approval. Creates isolated workspace on new branch, runs project setup, verifies clean test baseline.
-
-3. **writing-plans** - Activates with approved design. Breaks work into bite-sized tasks (2-5 minutes each). Every task has exact file paths, complete code, verification steps. Cross-reviewed against the spec, so a requirement with no task surfaces before execution starts.
-
-4. **subagent-driven-development** or **executing-plans** - Activates with plan. Dispatches a fresh implementer per task, each gated by an independent review of spec compliance and code quality — or, when tasks are tightly coupled, executes them inline in this session.
-
-5. **test-driven-development** - Activates during implementation. Enforces RED-GREEN-REFACTOR: write failing test, watch it fail, write minimal code, watch it pass, commit. Deletes code written before tests.
-
-6. **requesting-code-review** - Activates between tasks. Reviews against plan, reports issues by severity. Critical issues block progress.
-
-7. **finishing-a-development-branch** - Activates when tasks complete. Verifies tests, asks how to integrate (merge / PR / keep), cleans up the worktree it created.
-
-**The agent checks for relevant skills before any task.** Mandatory workflows, not suggestions.
+Outside-model review is conditional on risk or a user request. Explicit project
+checks and user verification gates remain binding throughout the workflow.
 
 ## What's Inside
 
@@ -326,7 +322,7 @@ notice. One file under a different license does not relicense this package.
 - **test-driven-development** - RED-GREEN-REFACTOR cycle (includes testing anti-patterns reference)
 
 **Debugging**
-- **systematic-debugging** - 4-phase root cause process (includes root-cause-tracing, defense-in-depth, condition-based-waiting techniques)
+- **systematic-debugging** - Evidence-led root cause investigation (includes root-cause-tracing, defense-in-depth, condition-based-waiting techniques)
 - **verification-before-completion** - Ensure it's actually fixed
 
 **Collaboration** 

@@ -87,6 +87,7 @@ not block you. Two rules follow from that:
 
 1. **Read each result** — what changed, and why.
 2. **Check for conflicts** — did two agents touch the same code?
-3. **Run the full suite** — the fixes have to work together, not just separately.
+3. **Verify integration** — run checks covering interactions plus required project
+   checks. Reuse unchanged evidence; use superpowers:verification-before-completion.
 4. **Spot-check the diffs** — agents make systematic errors, and a success report
    is a claim, not evidence (superpowers:verification-before-completion).
