@@ -1,7 +1,7 @@
 {
   "name": "superpowers",
-  "version": "6.2.1-cc.9",
-  "description": "Superpowers skills for Claude Code, tuned for Opus 5",
+  "version": "6.2.1-cc.10",
+  "description": "Claude Code skills with shared guidance for Opus/Fable, Sol, and Astra-class models",
   "type": "module",
   "keywords": [
     "skills",
