@@ -1,5 +1,22 @@
 # Superpowers Release Notes
 
+## v6.2.1-cc.11 (2026-10-19)
+
+### Codex Astra replaces Cursor Grok as the outside reviewer
+
+`cross-reviewing-with-cursor` is now `cross-reviewing-with-codex`. The reviewer
+is `codex exec` on the newest `gpt-*-astra` model from `codex debug models`, at
+`medium` reasoning effort, in the `read-only` sandbox with `--ignore-rules` and `--ephemeral`. The
+final answer goes to a file through `-o`. A run is complete only when it exits 0
+and that file is not empty. The availability, skip, and finding-verification
+rules did not change.
+
+The main model is the latest Opus. Agents keep `model: inherit`, so run the
+session on Opus. `CLAUDE.md` and the README now say so.
+
+Validation: one `codex exec` smoke run on `gpt-6-astra` at `medium`. No
+behavioral probes ran for this change.
+
 ## v6.2.1-cc.9 (2026-09-02)
 
 Ports the parts of upstream v6.3.0 that apply to this fork. The harness support

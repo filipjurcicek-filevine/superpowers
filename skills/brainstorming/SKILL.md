@@ -52,7 +52,7 @@ location. Use `superpowers:writing-clearly-and-concisely` for its prose.
 Include scope, decisions, constraints, and observable acceptance criteria.
 Check for contradictions, missing requirements, and unresolved placeholders.
 
-Use `superpowers:cross-reviewing-with-cursor` when requested or when consequential
+Use `superpowers:cross-reviewing-with-codex` when requested or when consequential
 uncertainty warrants another review. Confirm findings before changing the spec.
 Present the spec and any unresolved choices. Wait only for decisions not already
 authorized, then use `superpowers:writing-plans` if a multi-step plan is needed.

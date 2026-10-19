@@ -51,7 +51,7 @@ change user outcomes or expand scope; continue independent planning meanwhile.
 
 Before handoff, check requirement coverage, interface consistency, dependency order,
 and whether each acceptance check can distinguish correct from incorrect behavior.
-Use `superpowers:cross-reviewing-with-cursor` when requested or when substantial
+Use `superpowers:cross-reviewing-with-codex` when requested or when substantial
 risk or uncertainty warrants it. Confirm findings against the requirements.
 
 ## Execution handoff

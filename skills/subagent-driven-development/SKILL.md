@@ -132,7 +132,7 @@ package from that base to HEAD and dispatch `superpowers:code-reviewer`. Include
 requirements and the ledger's deferred findings. This review checks integration
 across tasks, not just each task in isolation.
 
-Use `superpowers:cross-reviewing-with-cursor` when requested or when substantial
+Use `superpowers:cross-reviewing-with-codex` when requested or when substantial
 risk or uncertainty warrants an outside review. Both reviewers can run concurrently
 against the same stable range. Verify and deduplicate findings before fixing them.
 

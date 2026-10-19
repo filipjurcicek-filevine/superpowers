@@ -1,18 +1,18 @@
 ---
-name: cross-reviewing-with-cursor
+name: cross-reviewing-with-codex
 description: Use when an outside review is requested or consequential uncertainty warrants a second model
 ---
 
-# Cross-Reviewing With Cursor
+# Cross-Reviewing With Codex
 
 Use an outside review for a spec, plan, or completed branch when requested or when
 its likely value justifies the extra work. Routine task review does not need a
 second reviewer automatically. An installed CLI alone is not a reason to run it.
 
 Read [cli-reference.md](cli-reference.md) for availability, model resolution,
-read-only invocation, output capture, and tree fingerprint checks. Cursor is the
-only review CLI. Run it only when the CLI, active paid access, and remaining
-plan allowance are established. Free accounts, unavailable access, exhausted
+read-only invocation, output capture, and tree fingerprint checks. The Codex CLI
+on the latest Astra model at `medium` effort is the only review CLI. Run it only
+when the CLI, active paid access, and remaining plan allowance are established. Free accounts, unavailable access, exhausted
 allowance, or unknown eligibility mean skip. Do not use a billable probe to check.
 Report the reason once and continue without claiming a review occurred. Never install
 a tool just to satisfy this skill.

@@ -203,3 +203,11 @@ optional when the CLI, paid access, or remaining allowance is unavailable. Unkno
 eligibility also skips review; access and quota errors are not retried. These
 routing changes passed local metadata, link, and diff checks. The model probes
 above did not exercise account availability or billing behavior.
+
+## Codex Astra review follow-up
+
+A later user request replaced the Cursor/Grok reviewer with the Codex CLI on the
+newest `gpt-*-astra` model at `medium` effort. The skill is now
+`cross-reviewing-with-codex`. The availability, skip, and finding-verification
+rules did not change. A smoke run of `codex exec` on `gpt-6-astra` at `medium`
+returned exit 0. No behavioral probes ran for this change.

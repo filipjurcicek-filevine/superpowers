@@ -27,8 +27,12 @@ names, for example "use a tool with a name like EnterWorktree". Do not add
 references that map tools for each harness. Do not add plugin manifests for
 other harnesses. We removed all of that. We did not only disable it.
 
-**One model, different effort.** Subagent roles live in `agents/` as agent
-definitions. Each definition sets `model: inherit` and one fixed `effort:` tier.
+**One model, different effort.** The main model is the latest Opus. Run the
+session on it. Subagent roles live in `agents/` as agent
+definitions. Each definition sets `model: inherit` and one fixed `effort:` tier,
+so every role uses the session model. The outside reviewer in
+`cross-reviewing-with-codex` is the one exception: it runs the latest Codex
+Astra model at `medium` effort, outside Claude Code.
 Do not add logic that selects a model tier, for example "use the cheapest model
 that can do the work". Such logic starts agents that this fork does not want.
 The Agent tool accepts a `model` value for each call. It does not accept an
@@ -141,7 +145,7 @@ passes. Keep release claims within the evidence actually collected.
   - The skill skips the step in one line when the tool is absent.
   - The skill never asks the user to install the tool.
 
-  `cross-reviewing-with-cursor` is the one skill that uses an optional tool. Its
+  `cross-reviewing-with-codex` is the one skill that uses an optional tool. Its
   pattern is the standard for every other skill.
 - **Findings from an outside model are claims.** A skill can bring in a review
   from another model. The skill must check each finding against the artifact or

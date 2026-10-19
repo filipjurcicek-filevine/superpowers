@@ -2,7 +2,9 @@
 
 Superpowers is a complete software development methodology for your coding agents, built on top of a set of composable skills and some initial instructions that make sure your agent uses them.
 
-> **Shared prompts for Opus/Fable, Sol, and Astra-class models.** Packaging still
+> **Shared prompts for Opus/Fable, Sol, and Astra-class models.** Run the Claude
+> Code session on the latest Opus; every agent inherits it. The outside reviewer
+> is Codex on the latest Astra model at medium effort. Packaging still
 > targets Claude Code — the CLI and VS Code extension. This is a prompt-design
 > scope, not a claim of verified model parity or a cross-harness adapter.
 >
@@ -169,7 +171,7 @@ edits were absent from `~/.claude/plugins/cache/superpowers-cc/`. Trust `list`.
 from the manifest and the tree. This fork should show **16 skills**, **4 agents**
 (`code-reviewer`, `sdd-implementer`, `sdd-task-reviewer`, `sdd-re-reviewer`), and
 **2 hooks** (SessionStart, PreToolUse — two events, three scripts). If `agents` is
-0 or `cross-reviewing-with-cursor` is missing, the manifests are wrong, not the
+0 or `cross-reviewing-with-codex` is missing, the manifests are wrong, not the
 cache.
 
 To confirm an edit reached what runs, grep the cache for it:
@@ -199,7 +201,7 @@ call. The progress ledger is the resume mechanism either way.
 | Feature | Enable | Effect |
 |---|---|---|
 | Writing style pointer | `SUPERPOWERS_WRITING_STYLE=1` | Adds a ~30-word pointer to `writing-clearly-and-concisely` to every session's context. Also accepts `true`, `yes`, and `on`, in any case. The skill's rules are not injected — the pointer routes to them |
-| Cross-review | [Cursor Agent CLI](https://docs.cursor.com/en/cli/overview) on PATH | Spec, plan, and branch cross-review on the latest Grok model at high effort. Confirm it runs: `cursor-agent -p --output-format json --mode ask --sandbox enabled --trust "Reply OK" </dev/null` — plain text instead of JSON means bad auth or a bad model id |
+| Cross-review | [Codex CLI](https://developers.openai.com/codex/cli) on PATH | Spec, plan, and branch cross-review on the latest Astra model at medium effort. Confirm it runs: `codex exec -m gpt-6-astra -c model_reasoning_effort='"medium"' -s read-only --ignore-rules --ephemeral --skip-git-repo-check "Reply OK" </dev/null` — a non-zero exit means bad auth or a bad model id |
 
 ### Other harnesses
 
@@ -257,12 +259,12 @@ refuted and out-of-scope findings get a recorded ruling rather than silent
 deletion. A finding that objects to something the spec deliberately decided goes to
 you, not into the spec.
 
-The reviewer is the [Cursor Agent CLI](https://docs.cursor.com/en/cli/overview) on
-the latest Grok model at high effort. Review requires the CLI, active paid access,
+The reviewer is the [Codex CLI](https://developers.openai.com/codex/cli) on
+the latest Astra model at medium effort. Review requires the CLI, active paid access,
 and remaining plan allowance. Missing access, a free plan, exhausted allowance,
 or unknown eligibility means skip. Each call site states the reason and continues — it is an enhancement, never a
 gate. See
-[cross-reviewing-with-cursor](skills/cross-reviewing-with-cursor/SKILL.md).
+[cross-reviewing-with-codex](skills/cross-reviewing-with-codex/SKILL.md).
 
 ## Native task management
 
@@ -331,7 +333,7 @@ checks and user verification gates remain binding throughout the workflow.
 - **executing-plans** - Inline execution for tightly coupled tasks
 - **dispatching-parallel-agents** - Concurrent subagent workflows
 - **requesting-code-review** - Dispatching an independent reviewer
-- **cross-reviewing-with-cursor** - Second-model review of a spec, plan, or branch, with every finding verified before it is applied
+- **cross-reviewing-with-codex** - Second-model review of a spec, plan, or branch, with every finding verified before it is applied
 - **receiving-code-review** - Responding to feedback
 - **using-git-worktrees** - Parallel development branches
 - **finishing-a-development-branch** - Merge/PR decision workflow
